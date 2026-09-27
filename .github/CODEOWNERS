@@ -9,7 +9,7 @@
 /prisma/                           @owusuvictorjnr
 /next.config.ts                    @owusuvictorjnr
 /vercel.json                       @owusuvictorjnr
-/src/proxy.ts                      @owusuvictorjnr
+/src/middleware.ts                 @owusuvictorjnr
 /src/lib/env.ts                    @owusuvictorjnr
 /src/features/auth/                @owusuvictorjnr
 /src/features/donations/           @owusuvictorjnr

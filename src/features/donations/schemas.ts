@@ -23,3 +23,15 @@ export const donationFilterSchema = z.object({
   page: z.coerce.number().int().min(1).default(1).catch(1),
 });
 export type DonationFilters = z.infer<typeof donationFilterSchema>;
+
+export const donationActionSchema = z.object({
+  reference: z
+    .string()
+    .trim()
+    .min(5, "Reference too short")
+    .max(100, "Reference too long")
+    .regex(/^GIA-\d+-[a-zA-Z0-9_-]+$/, "Invalid donation reference format"),
+  token: z.string().trim().min(32, "Invalid token").max(128, "Invalid token"),
+});
+export type DonationActionInput = z.infer<typeof donationActionSchema>;
+

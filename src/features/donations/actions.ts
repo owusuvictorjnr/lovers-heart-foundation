@@ -4,11 +4,31 @@ import crypto from "node:crypto";
 import { db } from "@/lib/db";
 import { initializeTransaction, verifyTransaction } from "./lib/paystack";
 import { applyPaystackResult } from "./service";
-import { donateSchema, type DonateInput } from "./schemas";
+import { donateSchema, donationActionSchema, type DonateInput, type DonationActionInput } from "./schemas";
 
 type StartResult =
-  | { ok: true; accessCode: string; reference: string }
+  | { ok: true; accessCode: string; reference: string; token: string }
   | { ok: false; message: string; fieldErrors?: Record<string, string[] | undefined> };
+
+function getCheckoutTokenSecret(): string {
+  return process.env.AUTH_SECRET || "gia-checkout-token-secret-fallback";
+}
+
+function createDonationToken(reference: string): string {
+  return crypto.createHmac("sha256", getCheckoutTokenSecret()).update(reference).digest("hex");
+}
+
+function verifyDonationToken(reference: string, token: string): boolean {
+  try {
+    const expected = createDonationToken(reference);
+    const expectedBuf = Buffer.from(expected, "hex");
+    const tokenBuf = Buffer.from(token, "hex");
+    if (expectedBuf.length !== tokenBuf.length) return false;
+    return crypto.timingSafeEqual(expectedBuf, tokenBuf);
+  } catch {
+    return false;
+  }
+}
 
 /** Step 1: record a pending donation and open a Paystack transaction for it. */
 export async function startDonation(input: DonateInput): Promise<StartResult> {
@@ -18,6 +38,7 @@ export async function startDonation(input: DonateInput): Promise<StartResult> {
   }
   const { amount, name, email, phone, anonymous } = parsed.data;
   const reference = `GIA-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`.toUpperCase();
+  const token = createDonationToken(reference);
 
   try {
     await db.donation.create({
@@ -35,7 +56,7 @@ export async function startDonation(input: DonateInput): Promise<StartResult> {
         ],
       },
     });
-    return { ok: true, accessCode: tx.access_code, reference };
+    return { ok: true, accessCode: tx.access_code, reference, token };
   } catch (error) {
     console.error("startDonation failed", error);
     await db.donation.updateMany({ where: { reference, status: "PENDING" }, data: { status: "FAILED" } }).catch(() => {});
@@ -44,7 +65,16 @@ export async function startDonation(input: DonateInput): Promise<StartResult> {
 }
 
 /** Step 2: after the popup reports success, confirm with Paystack server-to-server. */
-export async function confirmDonation(reference: string) {
+export async function confirmDonation(input: DonationActionInput) {
+  const parsed = donationActionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false };
+  }
+  const { reference, token } = parsed.data;
+  if (!verifyDonationToken(reference, token)) {
+    return { ok: false };
+  }
+
   try {
     const tx = await verifyTransaction(reference);
     const donation = await applyPaystackResult(tx);
@@ -57,6 +87,17 @@ export async function confirmDonation(reference: string) {
 }
 
 /** Popup closed without paying. */
-export async function cancelDonation(reference: string) {
+export async function cancelDonation(input: DonationActionInput) {
+  const parsed = donationActionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false };
+  }
+  const { reference, token } = parsed.data;
+  if (!verifyDonationToken(reference, token)) {
+    return { ok: false };
+  }
+
   await db.donation.updateMany({ where: { reference, status: "PENDING" }, data: { status: "ABANDONED" } });
+  return { ok: true };
 }
+

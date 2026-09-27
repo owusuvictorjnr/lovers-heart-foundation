@@ -47,13 +47,13 @@ export function DonateForm() {
       const popup = new PaystackPop();
       popup.resumeTransaction(res.accessCode, {
         onSuccess: async () => {
-          const { ok } = await confirmDonation(res.reference);
+          const { ok } = await confirmDonation({ reference: res.reference, token: res.token });
           setThanks({ amount: input.amount, email: input.email, reference: res.reference, confirmed: ok });
           form.reset();
           setAmount(100);
         },
         onCancel: () => {
-          cancelDonation(res.reference);
+          cancelDonation({ reference: res.reference, token: res.token });
           toast("Payment cancelled");
         },
         onError: (err: { message?: string }) => {

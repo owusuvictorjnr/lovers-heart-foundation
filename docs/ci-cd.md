@@ -6,14 +6,14 @@ How code gets from a laptop to **staging** and **production**, and the security 
 ```
 feature/*  ──PR──►  develop  ──auto──►  STAGING   (sk_test_ keys, staging DB)
                        │
-                       └──PR──►  main  ──approval──►  PRODUCTION   (sk_live_ keys, prod DB)
+                       └──PR──►  prod  ──approval──►  PRODUCTION   (sk_live_ keys, prod DB)
 ```
 
 | Workflow                         | Trigger                                                         | What it does                                                                                            |
 | -------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`     | Every PR to`develop`/`main`, and reused by deploy           | Secret scan, dependency review,`npm audit`, security rules, lint, typecheck, migration check, build   |
+| `.github/workflows/ci.yml`     | Every PR to`develop`/`prod`, and reused by deploy           | Secret scan, dependency review,`npm audit`, security rules, lint, typecheck, migration check, build   |
 | `.github/workflows/codeql.yml` | Push, PR, weekly                                                | Static security analysis (CodeQL`security-extended`)                                                  |
-| `.github/workflows/deploy.yml` | Push to`develop` → staging · push to `main` → production | Re-runs CI, applies DB migrations, verifies env, builds, deploys to Vercel, runs smoke & security tests |
+| `.github/workflows/deploy.yml` | Push to`develop` → staging · push to `prod` → production | Re-runs CI, applies DB migrations, verifies env, builds, deploys to Vercel, runs smoke & security tests |
 
 ---
 
@@ -62,7 +62,7 @@ Create **`staging`** and **`production`**:
 
 | Setting             | staging          | production                                             |
 | ------------------- | ---------------- | ------------------------------------------------------ |
-| Deployment branches | `develop` only | `main` only                                          |
+| Deployment branches | `develop` only | `prod` only                                          |
 | Required reviewers  | none             | **1–2 maintainers** (not the person who merged) |
 | Prevent self-review | –               | ✅                                                     |
 | Wait timer          | –               | optional, e.g. 5 min                                   |
@@ -82,11 +82,11 @@ And one **environment variable** (not secret): `SITE_URL` (`https://staging.<dom
 
 ### 1.5 Branch rulesets (Settings → Rules → Rulesets)
 
-Create a ruleset targeting **`main`** and **`develop`**:
+Create a ruleset targeting **`prod`** and **`develop`**:
 
 - ✅ Restrict deletions · ✅ Block force pushes · ✅ Require linear history
 - ✅ Require a pull request before merging
-  - Required approvals: **1** (`develop`) / **2 if possible** (`main`)
+  - Required approvals: **1** (`develop`) / **2 if possible** (`prod`)
   - ✅ Dismiss stale approvals when new commits are pushed
   - ✅ Require review from **Code Owners** (see `.github/CODEOWNERS`; replace `@OWNER`)
   - ✅ Require conversation resolution
@@ -123,9 +123,9 @@ Create a ruleset targeting **`main`** and **`develop`**:
 2. Push and open a PR into **`develop`**. CI runs; fix anything red, and fill in the PR security checklist.
 3. After approval, **squash-merge**. That deploys to **staging** automatically.
 4. Test on `https://staging.<domain>`, including a Paystack test payment.
-5. Open a PR **`develop` → `main`**. After approval and merge, the production deploy **waits for a reviewer** in the Actions tab. Approve it, then watch the smoke tests.
+5. Open a PR **`develop` → `prod`**. After approval and merge, the production deploy **waits for a reviewer** in the Actions tab. Approve it, then watch the smoke tests.
 
-**Hotfix:** branch from `main`, PR into `main`, then merge `main` back into `develop`.
+**Hotfix:** branch from `prod`, PR into `prod`, then merge `prod` back into `develop`.
 
 ---
 
@@ -147,7 +147,7 @@ Create a ruleset targeting **`main`** and **`develop`**:
 | `scripts/security-check.mjs`                                         | CI             | project rules in §4                                                                            |
 | `prisma migrate diff --exit-code`                                    | CI             | schema changed without a migration                                                              |
 | Environment secrets + required reviewers                               | deploy         | unapproved or unauthorized production deploys                                                   |
-| "Production only from`main`" guard                                   | deploy         | deploys from other refs                                                                         |
+| "Production only from`prod`" guard                                   | deploy         | deploys from other refs                                                                         |
 | `scripts/verify-deploy-env.mjs`                                      | deploy         | wrong project, test keys in prod, live keys in staging, no DB TLS, secrets in`NEXT_PUBLIC_*`  |
 | `scripts/smoke-test.mjs`                                             | deploy         | missing security headers, unprotected admin/export, unsigned webhook accepted                   |
 | Pinned Vercel CLI version                                              | deploy         | surprise CLI changes                                                                            |
@@ -160,7 +160,7 @@ Create a ruleset targeting **`main`** and **`develop`**:
 | Env validated at startup; live Paystack key only in production                          | `src/lib/env.ts`, `src/instrumentation.ts`                           |
 | Security headers: CSP, HSTS, X-Frame-Options, nosniff, Referrer/Permissions-Policy      | `next.config.ts`                                                       |
 | `no-store` + `noindex` on `/admin` and `/api`                                   | `next.config.ts`                                                       |
-| Admin gate on routes (proxy)**and** in every admin action/page (`requireAdmin`) | `src/proxy.ts`, `src/features/auth/lib/session.ts`                   |
+| Admin gate on routes (middleware)**and** in every admin action/page (`requireAdmin`) | `src/middleware.ts`, `src/features/auth/lib/session.ts`                   |
 | HttpOnly, Secure, SameSite=Lax signed session cookie (HS256, 7 days)                    | `src/features/auth/lib/session.ts`                                     |
 | bcrypt (cost 12) password hashes; constant-time-ish login                               | `src/features/auth/actions.ts`, `prisma/seed.ts`                     |
 | Zod validation on every server input                                                    | `src/features/*/schemas.ts`                                            |
@@ -235,6 +235,6 @@ Database migrations are **not** rolled back automatically. Write a new forward m
 ## 6. Known gaps / next steps
 
 - **Login rate limiting** is not implemented yet. Add it (e.g. Upstash Ratelimit) before launch.
-- The CSP allows `'unsafe-inline'` scripts, which Next.js needs without nonces. For a stricter policy, generate a nonce in `src/proxy.ts`. That makes pages dynamic, which costs more compute.
+- The CSP allows `'unsafe-inline'` scripts, which Next.js needs without nonces. For a stricter policy, generate a nonce in `src/middleware.ts`. That makes pages dynamic, which costs more compute.
 - `harden-runner` is in `audit` mode. After a few runs, copy the observed endpoints into an allow-list and switch to `egress-policy: block`.
 - The Paystack CSP origins are based on Paystack's public docs. Confirm the checkout popup works on **staging** before launch.
