@@ -1,0 +1,16 @@
+# Changes to these paths require review from a code owner (enforced by the branch ruleset).
+# Replace @OWNER with your GitHub username or team (e.g. @god-is-alive/maintainers).
+
+*                                  @owusuvictorjnr
+
+# Security-sensitive: always needs an owner's eyes
+/.github/                          @owusuvictorjnr
+/scripts/                          @owusuvictorjnr
+/prisma/                           @owusuvictorjnr
+/next.config.ts                    @owusuvictorjnr
+/vercel.json                       @owusuvictorjnr
+/src/proxy.ts                      @owusuvictorjnr
+/src/lib/env.ts                    @owusuvictorjnr
+/src/features/auth/                @owusuvictorjnr
+/src/features/donations/           @owusuvictorjnr
+/src/app/api/                      @owusuvictorjnr
