@@ -10,7 +10,7 @@ export function HeroSection({ years }: { years: number }) {
           <p className="eyebrow">Ghana-based NGO · Giving every year</p>
           <h1 className="text-[clamp(2.3rem,5vw,3.8rem)]">Every child deserves to know they are loved.</h1>
           <p className="mt-5 mb-8 max-w-xl text-lg text-muted">
-            God Is Alive brings food, clothing, school supplies and hope to children&apos;s homes across Ghana. Once a year,
+            Lovers Heart Foundation brings food, clothing, school supplies and hope to children&apos;s homes across Ghana. Once a year,
             we show up in person to give.
           </p>
           <div className="flex flex-wrap gap-3">
