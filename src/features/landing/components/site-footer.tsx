@@ -17,8 +17,11 @@ export function SiteFooter() {
           ))}
         </nav>
       </Container>
-      <Container className="border-t border-white/10 py-5 text-sm">
-        © {new Date().getFullYear()} {siteConfig.name} · Ghana
+      <Container className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 py-5 text-sm">
+        <p>© {new Date().getFullYear()} {siteConfig.name} · Ghana</p>
+        <a href="/admin/login" className="text-white/50 transition hover:text-gold">
+          Admin Portal →
+        </a>
       </Container>
     </footer>
   );
