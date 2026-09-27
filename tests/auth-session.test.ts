@@ -7,7 +7,7 @@ import { loginSchema } from "../src/features/auth/schemas";
 describe("Auth & Session Security", () => {
   const sampleUser: SessionPayload = {
     userId: "usr_12345",
-    email: "admin@godisalive.org",
+    email: "admin@loversheartfoundation.org",
     name: "Admin User",
   };
 
@@ -36,9 +36,9 @@ describe("Auth & Session Security", () => {
   });
 
   it("loginSchema enforces valid email and password format", () => {
-    assert.ok(loginSchema.safeParse({ email: "admin@godisalive.org", password: "Password123!" }).success);
+    assert.ok(loginSchema.safeParse({ email: "admin@loversheartfoundation.org", password: "Password123!" }).success);
     assert.ok(!loginSchema.safeParse({ email: "not-an-email", password: "123" }).success);
-    assert.ok(!loginSchema.safeParse({ email: "admin@godisalive.org", password: "" }).success);
+    assert.ok(!loginSchema.safeParse({ email: "admin@loversheartfoundation.org", password: "" }).success);
   });
 
   it("bcrypt password verification is constant-time safe against missing users", async () => {
@@ -57,22 +57,24 @@ describe("Auth & Session Security", () => {
     );
 
     const testEmail = `attacker-${Date.now()}@example.com`;
-    clearLoginRateLimit(testEmail);
+    await clearLoginRateLimit(testEmail);
 
     // First 5 attempts allowed
     for (let i = 0; i < 5; i++) {
-      assert.equal(checkLoginRateLimit(testEmail).allowed, true);
-      recordFailedLogin(testEmail);
+      const status = await checkLoginRateLimit(testEmail);
+      assert.equal(status.allowed, true);
+      await recordFailedLogin(testEmail);
     }
 
     // 6th attempt blocked by rate limit
-    const blocked = checkLoginRateLimit(testEmail);
+    const blocked = await checkLoginRateLimit(testEmail);
     assert.equal(blocked.allowed, false);
     assert.ok(blocked.retryAfterSeconds > 0);
 
     // Clear after success
-    clearLoginRateLimit(testEmail);
-    assert.equal(checkLoginRateLimit(testEmail).allowed, true);
+    await clearLoginRateLimit(testEmail);
+    const cleared = await checkLoginRateLimit(testEmail);
+    assert.equal(cleared.allowed, true);
   });
 });
 
