@@ -25,7 +25,7 @@ Do these in order. Each step is required; skipping one weakens the chain.
 
 Separate projects mean staging can **never** read production secrets.
 
-1. Create **`god-is-alive-staging`** and **`god-is-alive-production`** in Vercel. Import the repo, then **disconnect Git** (Settings → Git). Only GitHub Actions deploys, and `vercel.json` also disables Git deployments.
+1. Create **`lovers-heart-foundation-staging`** and **`lovers-heart-foundation-production`** in Vercel. Import the repo, then **disconnect Git** (Settings → Git). Only GitHub Actions deploys, and `vercel.json` also disables Git deployments.
 2. In **each** project → Settings → Environment Variables (Production scope), add:
 
    | Variable                 | Staging                                  | Production                                      |
