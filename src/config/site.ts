@@ -3,16 +3,16 @@
  * Edit these values instead of hunting through components.
  */
 export const siteConfig = {
-  name: "God Is Alive",
+  name: "Lovers Heart Foundation",
   tagline: "Bringing hope to children's homes across Ghana.",
   description:
-    "God Is Alive is a Ghanaian NGO that donates food, clothing, school supplies and love to children's homes across Ghana every year.",
+    "Lovers Heart Foundation is a Ghanaian NGO that donates food, clothing, school supplies and love to children's homes across Ghana every year.",
   foundedYear: 2014, // [placeholder]
   contact: {
     address: "[Street / Area], Accra, Ghana",
     phone: "+233 24 000 0000",
     phoneHref: "tel:+233240000000",
-    email: "info@godisalive.org",
+    email: "info@loversheartfoundation.org",
     whatsapp: "233240000000", // international format, no +
   },
   socials: [
@@ -22,7 +22,7 @@ export const siteConfig = {
   ],
   /** Manual giving options shown under the online donation form */
   directGiving: {
-    reference: "GIA Donation",
+    reference: "LHF Donation",
     momo: [
       { network: "MTN MoMo", number: "024 000 0000", color: "#ffcc00", textColor: "#1d1a16", short: "MTN" },
       { network: "Telecel Cash", number: "020 000 0000", color: "#e30613", textColor: "#fff", short: "T" },
@@ -30,7 +30,7 @@ export const siteConfig = {
     ],
     bank: {
       bank: "[Bank Name], [Branch]",
-      accountName: "God Is Alive",
+      accountName: "Lovers Heart Foundation",
       accountNumber: "0000000000000",
     },
   },
