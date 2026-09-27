@@ -50,4 +50,29 @@ describe("Auth & Session Security", () => {
     assert.equal(await bcrypt.compare("correct-password", realHash), true);
     assert.equal(await bcrypt.compare("wrong-password", realHash), false);
   });
+
+  it("rate limits repeated failed login attempts", async () => {
+    const { checkLoginRateLimit, recordFailedLogin, clearLoginRateLimit } = await import(
+      "../src/features/auth/lib/rate-limit"
+    );
+
+    const testEmail = `attacker-${Date.now()}@example.com`;
+    clearLoginRateLimit(testEmail);
+
+    // First 5 attempts allowed
+    for (let i = 0; i < 5; i++) {
+      assert.equal(checkLoginRateLimit(testEmail).allowed, true);
+      recordFailedLogin(testEmail);
+    }
+
+    // 6th attempt blocked by rate limit
+    const blocked = checkLoginRateLimit(testEmail);
+    assert.equal(blocked.allowed, false);
+    assert.ok(blocked.retryAfterSeconds > 0);
+
+    // Clear after success
+    clearLoginRateLimit(testEmail);
+    assert.equal(checkLoginRateLimit(testEmail).allowed, true);
+  });
 });
+
