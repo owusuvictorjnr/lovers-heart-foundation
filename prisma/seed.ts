@@ -23,13 +23,23 @@ async function main() {
   if (!email || !password) throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD in .env");
   if (password.length < 10) throw new Error("ADMIN_PASSWORD must be at least 10 characters");
 
-  const hash = await bcrypt.hash(password, 12);
-  await db.adminUser.upsert({
-    where: { email },
-    update: { passwordHash: hash },
-    create: { email, name: "Administrator", passwordHash: hash },
-  });
-  console.log(`✔ Admin: ${email}`);
+  const existing = await db.adminUser.findUnique({ where: { email } });
+  if (!existing) {
+    const hash = await bcrypt.hash(password, 12);
+    await db.adminUser.create({
+      data: { email, name: "Administrator", passwordHash: hash },
+    });
+    console.log(`✔ Created admin account: ${email}`);
+  } else if (process.env.RESET_ADMIN_PASSWORD === "true") {
+    const hash = await bcrypt.hash(password, 12);
+    await db.adminUser.update({
+      where: { email },
+      data: { passwordHash: hash },
+    });
+    console.log(`✔ Reset admin password for: ${email}`);
+  } else {
+    console.log(`✔ Admin already exists: ${email} (preserved existing credentials; set RESET_ADMIN_PASSWORD=true to overwrite)`);
+  }
 
   if ((await db.home.count()) === 0) {
     await db.home.createMany({
