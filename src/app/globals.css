@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest: #0f5132;
+  --color-forest-light: #16734a;
+  --color-gold: #e8a317;
+  --color-gold-soft: #fbeccb;
+  --color-clay: #b3261e;
+  --color-ink: #1d1a16;
+  --color-muted: #6b645a;
+  --color-cream: #fffdf8;
+  --color-sand: #f6f0e4;
+  --color-line: #e7dfcf;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body { @apply bg-cream font-sans text-[17px] leading-relaxed text-ink antialiased; }
+  h1, h2, h3 { @apply font-serif leading-tight tracking-tight; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+}
+
+@utility eyebrow {
+  @apply mb-3 text-xs font-semibold tracking-[.14em] text-forest-light uppercase;
+}
+
+/* Ghana kente-inspired stripe */
+@utility kente {
+  height: 10px;
+  background: repeating-linear-gradient(90deg,
+    var(--color-gold) 0 40px, var(--color-forest) 40px 60px, var(--color-clay) 60px 72px,
+    var(--color-ink) 72px 78px, var(--color-gold) 78px 110px, var(--color-forest-light) 110px 124px);
+}
