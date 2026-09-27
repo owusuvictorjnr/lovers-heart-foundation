@@ -23,10 +23,11 @@ async function main() {
   if (!email || !password) throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD in .env");
   if (password.length < 10) throw new Error("ADMIN_PASSWORD must be at least 10 characters");
 
+  const hash = await bcrypt.hash(password, 12);
   await db.adminUser.upsert({
     where: { email },
-    update: {},
-    create: { email, name: "Administrator", passwordHash: await bcrypt.hash(password, 12) },
+    update: { passwordHash: hash },
+    create: { email, name: "Administrator", passwordHash: hash },
   });
   console.log(`✔ Admin: ${email}`);
 
