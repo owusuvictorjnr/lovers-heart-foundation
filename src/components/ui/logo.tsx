@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
 export function Logo({ light, className }: { light?: boolean; className?: string }) {
@@ -10,7 +11,7 @@ export function Logo({ light, className }: { light?: boolean; className?: string
           <path d="M16 9v12M11.5 13.5h9" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
         </svg>
       </span>
-      God Is Alive
+      {siteConfig.name}
     </Link>
   );
 }
