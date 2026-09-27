@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { requireEnv } from "@/lib/env";
 
 export const MEDIA_FOLDERS = { gallery: "lovers-heart-foundation/gallery", homes: "lovers-heart-foundation/homes" } as const;
+export const LEGACY_MEDIA_FOLDERS = { gallery: "god-is-alive/gallery", homes: "god-is-alive/homes" } as const;
 export type MediaFolder = keyof typeof MEDIA_FOLDERS;
 
 /** Cloudinary signature: sha1 of sorted "k=v&k=v" params + api secret. */
