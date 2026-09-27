@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
-      <body>
+    <html lang="en" className={`${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         {children}
         <Toaster position="bottom-center" richColors />
       </body>
