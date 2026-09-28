@@ -1,11 +1,10 @@
-
 # Security Policy
 
 ## Reporting a vulnerability
 
 Please **do not** open a public issue. Report privately via
 **GitHub → Security → Report a vulnerability** (private vulnerability reporting),
-or email **security@godisalive.org** *(placeholder: replace)*.
+or email owusuvictor80@gmail.com.
 
 Include steps to reproduce and the impact. We aim to acknowledge within 72 hours.
 
