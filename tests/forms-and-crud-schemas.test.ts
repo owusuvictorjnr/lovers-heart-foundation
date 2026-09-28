@@ -75,7 +75,7 @@ describe("Forms & Entity Schema Validations", () => {
 
   it("validates gallery upload schema and metadata", () => {
     const validImage = newGalleryImageSchema.safeParse({
-      publicId: "god-is-alive/gallery/sample123",
+      publicId: "lovers-heart-foundation/gallery/sample123",
       url: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
       width: 1200,
       height: 800,

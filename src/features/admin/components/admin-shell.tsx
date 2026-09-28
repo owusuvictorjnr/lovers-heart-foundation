@@ -21,7 +21,7 @@ export async function AdminShell({ session, children }: { session: SessionPayloa
     <div className="min-h-dvh bg-sand/50 lg:grid lg:grid-cols-[250px_1fr]">
       <aside className="sticky top-0 z-40 flex flex-col gap-4 bg-forest p-4 text-white lg:h-dvh lg:p-5">
         <div className="flex items-center justify-between">
-          <Link href="/admin" className="font-serif text-xl font-bold">God Is Alive <span className="font-sans text-xs font-medium text-gold">Admin</span></Link>
+          <Link href="/admin" className="font-serif text-lg font-bold">Lovers Heart <span className="font-sans text-xs font-medium text-gold">Admin</span></Link>
           <Link href="/" target="_blank" className="text-xs text-white/70 hover:text-white lg:hidden">View site ↗</Link>
         </div>
         <AdminNav items={items} />

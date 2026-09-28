@@ -14,7 +14,7 @@ export async function login(_prev: ActionResult, formData: FormData): Promise<Ac
   if (!parsed.success) return validationError(parsed.error);
 
   const { email, password } = parsed.data;
-  const rateLimit = checkLoginRateLimit(email);
+  const rateLimit = await checkLoginRateLimit(email);
   if (!rateLimit.allowed) {
     const minutes = Math.ceil(rateLimit.retryAfterSeconds / 60);
     return {
@@ -27,11 +27,11 @@ export async function login(_prev: ActionResult, formData: FormData): Promise<Ac
   // Compare even when the user doesn't exist to keep response times similar
   const valid = await bcrypt.compare(password, user?.passwordHash ?? "$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinv");
   if (!user || !valid) {
-    recordFailedLogin(email);
+    await recordFailedLogin(email);
     return { ok: false, message: "Incorrect email or password." };
   }
 
-  clearLoginRateLimit(email);
+  await clearLoginRateLimit(email);
   await createSession({ userId: user.id, email: user.email, name: user.name });
   redirect("/admin");
 }
