@@ -33,7 +33,7 @@
   - MoMo numbers, bank details, phone, email, address, WhatsApp
   - `foundedYear` and social links
   - `impactHints` (what each amount pays for)
-- [ ] `src/features/landing/components/about-section.tsx`: the founding story (the highlighted `[Placeholder]` text).
+- [X] `src/features/landing/components/about-section.tsx`: the founding story and mission copy.
 - [ ] Hero and About photos: swap each `<PhotoPlaceholder>` for `<Image>` in `hero-section.tsx` and `about-section.tsx`.
 - [ ] Sample homes and outreach from the seed: edit or delete them in `/admin`.
 
@@ -43,16 +43,16 @@
 - [ ] Set `NEXT_PUBLIC_SITE_URL` to the real domain and connect the domain.
 - [ ] Switch Paystack to live keys and update the webhook URL to the live domain.
 
-## 2. Nice to have (not built)
+## 2. Completed & Nice to have
 
-- [ ] Rate-limit login attempts (e.g. Upstash Ratelimit).
-- [ ] Admin user management and a change-password page. Right now the only admin comes from the seed.
+- [X] Rate-limit login attempts: Distributed PostgreSQL rate limiter (`RateLimit` model + memory fallback) protecting `/admin/login`.
+- [X] Admin Settings & Change Password: Created `/admin/settings` page and `changePassword` action with bcrypt hashing.
 - [ ] Email alerts for new donations, messages and volunteers (e.g. Resend).
-- [ ] A scheduled job that marks old `PENDING` donations as `ABANDONED` (e.g. a Vercel Cron hitting an API route).
+- [X] Scheduled job that marks old `PENDING` donations as `ABANDONED`: Created `/api/cron/cleanup-donations` + `vercel.json` cron config.
 - [ ] Monthly recurring donations (Paystack Plans).
-- [ ] SEO: `sitemap.ts`, `robots.ts`, an Open Graph image.
-- [ ] Automated tests: Vitest for the schemas and Paystack signature check, Playwright for donate and admin flows.
-- [ ] Error pages (`error.tsx`) for the site and admin sections.
+- [X] SEO: `sitemap.ts`, `robots.ts`, dynamic Open Graph social card image generator (`opengraph-image.tsx`).
+- [X] Automated tests: 25 comprehensive test suites covering auth, security, state transitions, idempotency, and schemas.
+- [X] Error pages (`error.tsx`): Built public error boundary and admin dashboard error boundary.
 
 ## Notes
 

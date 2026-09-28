@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import bcrypt from "bcryptjs";
 import { signSession, verifySession, type SessionPayload } from "../src/features/auth/lib/token";
-import { loginSchema } from "../src/features/auth/schemas";
+import { loginSchema, changePasswordSchema } from "../src/features/auth/schemas";
 
 describe("Auth & Session Security", () => {
   const sampleUser: SessionPayload = {
@@ -39,6 +39,34 @@ describe("Auth & Session Security", () => {
     assert.ok(loginSchema.safeParse({ email: "admin@loversheartfoundation.org", password: "Password123!" }).success);
     assert.ok(!loginSchema.safeParse({ email: "not-an-email", password: "123" }).success);
     assert.ok(!loginSchema.safeParse({ email: "admin@loversheartfoundation.org", password: "" }).success);
+  });
+
+  it("changePasswordSchema enforces minimum password length and matching confirmation", () => {
+    assert.ok(
+      changePasswordSchema.safeParse({
+        currentPassword: "OldPassword123",
+        newPassword: "NewSecretPassword123!",
+        confirmPassword: "NewSecretPassword123!",
+      }).success
+    );
+
+    // Mismatched confirmation
+    assert.ok(
+      !changePasswordSchema.safeParse({
+        currentPassword: "OldPassword123",
+        newPassword: "NewSecretPassword123!",
+        confirmPassword: "DifferentPassword123!",
+      }).success
+    );
+
+    // Too short (under 10 chars)
+    assert.ok(
+      !changePasswordSchema.safeParse({
+        currentPassword: "OldPassword123",
+        newPassword: "short",
+        confirmPassword: "short",
+      }).success
+    );
   });
 
   it("bcrypt password verification is constant-time safe against missing users", async () => {
