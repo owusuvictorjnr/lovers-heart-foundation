@@ -20,10 +20,10 @@ export default function AdminError({
         <span className="text-4xl" aria-hidden>⚠️</span>
         <h1 className="mt-4 font-serif text-2xl font-bold text-ink">Dashboard Error</h1>
         <p className="mt-2 text-sm text-muted">
-          {error.message || "Failed to load admin resources. Please check your network or try refreshing."}
+          An unexpected error occurred while loading this section. Please try refreshing or return to the overview.
         </p>
         {error.digest && (
-          <p className="mt-1 font-mono text-xs text-muted/70">Digest: {error.digest}</p>
+          <p className="mt-1 font-mono text-xs text-muted/70">Error reference: {error.digest}</p>
         )}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button onClick={() => reset()} variant="forest">

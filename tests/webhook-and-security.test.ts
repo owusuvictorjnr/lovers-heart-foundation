@@ -70,7 +70,6 @@ describe("Security Controls: Webhooks, Signatures & Sanitization", () => {
     const resWrongAuth = await GET(reqWrongAuth);
     assert.equal(resWrongAuth.status, 401);
   });
-
   it("escapes malicious HTML characters to prevent reflected XSS in exports", async () => {
     const { escapeHtml } = await import("../src/lib/utils");
 
