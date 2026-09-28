@@ -38,25 +38,28 @@ export async function checkLoginRateLimit(key: string): Promise<{ allowed: boole
 
 /**
  * Records a failed login attempt for the key.
+ * Executes an atomic UPSERT in PostgreSQL to prevent race conditions during concurrent attempts.
  */
 export async function recordFailedLogin(key: string): Promise<void> {
-  const now = Date.now();
-  const resetAt = new Date(now + WINDOW_MS);
+  const resetAt = new Date(Date.now() + WINDOW_MS);
   try {
-    const record = await db.rateLimit.findUnique({ where: { key } });
-    if (!record || now > record.resetAt.getTime()) {
-      await db.rateLimit.upsert({
-        where: { key },
-        create: { key, attempts: 1, resetAt },
-        update: { attempts: 1, resetAt },
-      });
-    } else {
-      await db.rateLimit.update({
-        where: { key },
-        data: { attempts: { increment: 1 } },
-      });
-    }
+    await db.$executeRaw`
+      INSERT INTO "RateLimit" ("key", "attempts", "resetAt", "createdAt", "updatedAt")
+      VALUES (${key}, 1, ${resetAt}, NOW(), NOW())
+      ON CONFLICT ("key") DO UPDATE
+      SET
+        "attempts" = CASE
+          WHEN "RateLimit"."resetAt" < NOW() THEN 1
+          ELSE "RateLimit"."attempts" + 1
+        END,
+        "resetAt" = CASE
+          WHEN "RateLimit"."resetAt" < NOW() THEN ${resetAt}
+          ELSE "RateLimit"."resetAt"
+        END,
+        "updatedAt" = NOW()
+    `;
   } catch {
+    const now = Date.now();
     const rec = memoryStore.get(key);
     if (!rec || now > rec.resetTime) {
       memoryStore.set(key, { attempts: 1, resetTime: now + WINDOW_MS });

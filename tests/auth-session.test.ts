@@ -9,9 +9,10 @@ describe("Auth & Session Security", () => {
     userId: "usr_12345",
     email: "admin@loversheartfoundation.org",
     name: "Admin User",
+    sessionVersion: 1,
   };
 
-  it("signs and verifies valid session tokens", async () => {
+  it("signs and verifies valid session tokens with sessionVersion", async () => {
     const token = await signSession(sampleUser);
     assert.ok(typeof token === "string" && token.length > 50);
 
@@ -20,6 +21,7 @@ describe("Auth & Session Security", () => {
     assert.equal(payload.userId, sampleUser.userId);
     assert.equal(payload.email, sampleUser.email);
     assert.equal(payload.name, sampleUser.name);
+    assert.equal(payload.sessionVersion, sampleUser.sessionVersion);
   });
 
   it("rejects tampered tokens", async () => {
@@ -103,6 +105,28 @@ describe("Auth & Session Security", () => {
     await clearLoginRateLimit(testEmail);
     const cleared = await checkLoginRateLimit(testEmail);
     assert.equal(cleared.allowed, true);
+  });
+
+  it("handles concurrent failed login attempts atomically", async () => {
+    const { checkLoginRateLimit, recordFailedLogin, clearLoginRateLimit } = await import(
+      "../src/features/auth/lib/rate-limit"
+    );
+
+    const concurrentEmail = `concurrent-${Date.now()}@example.com`;
+    await clearLoginRateLimit(concurrentEmail);
+
+    // Fire 6 failed attempts concurrently in parallel
+    await Promise.all(
+      Array.from({ length: 6 }, () => recordFailedLogin(concurrentEmail))
+    );
+
+    // Concurrently recorded attempts must result in rate limit being exceeded
+    const status = await checkLoginRateLimit(concurrentEmail);
+    assert.equal(status.allowed, false);
+    assert.equal(status.remaining, 0);
+    assert.ok(status.retryAfterSeconds > 0);
+
+    await clearLoginRateLimit(concurrentEmail);
   });
 });
 

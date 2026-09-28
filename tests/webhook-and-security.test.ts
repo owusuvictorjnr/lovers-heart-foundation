@@ -54,4 +54,21 @@ describe("Security Controls: Webhooks, Signatures & Sanitization", () => {
     assert.equal(csvCell(safeText), `"Kwame Mensah"`);
     assert.equal(csvCell('Text with "quotes"'), `"Text with ""quotes"""`);
   });
+
+  it("fails closed on cron endpoint when CRON_SECRET is missing or unauthorized", async () => {
+    const { GET } = await import("../src/app/api/cron/cleanup-donations/route");
+
+    // Case 1: Missing header
+    const reqNoAuth = new Request("http://localhost:3000/api/cron/cleanup-donations");
+    const resNoAuth = await GET(reqNoAuth);
+    assert.equal(resNoAuth.status, 401);
+
+    // Case 2: Wrong Bearer token
+    const reqWrongAuth = new Request("http://localhost:3000/api/cron/cleanup-donations", {
+      headers: { authorization: "Bearer invalid_secret" },
+    });
+    const resWrongAuth = await GET(reqWrongAuth);
+    assert.equal(resWrongAuth.status, 401);
+  });
 });
+

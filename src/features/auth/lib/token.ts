@@ -4,7 +4,7 @@ import { SignJWT, jwtVerify } from "jose";
 export const SESSION_COOKIE = "gia_session";
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
-export type SessionPayload = { userId: string; email: string; name: string };
+export type SessionPayload = { userId: string; email: string; name: string; sessionVersion: number };
 
 function key() {
   const secret = process.env.AUTH_SECRET;

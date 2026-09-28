@@ -8,11 +8,9 @@ export const dynamic = "force-dynamic";
  * Can be triggered by Vercel Cron or any scheduled HTTP caller.
  */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  // Protect the cron endpoint if CRON_SECRET is configured
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

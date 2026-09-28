@@ -6,6 +6,9 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://loversheartfoundation.org";
+  const displayDomain = siteUrl.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
+
   return new ImageResponse(
     (
       <div
@@ -80,7 +83,7 @@ export default async function Image() {
             Ghana-Based Non-Profit Organization
           </span>
           <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.7)" }}>
-            loversheartfoundation.org
+            {displayDomain}
           </span>
         </div>
       </div>

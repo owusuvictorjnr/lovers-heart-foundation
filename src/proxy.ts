@@ -8,7 +8,11 @@ export async function proxy(request: NextRequest) {
   const isLogin = pathname === "/admin/login";
 
   if (!session && !isLogin) {
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+    const res = NextResponse.redirect(new URL("/admin/login", request.url));
+    if (request.cookies.has(SESSION_COOKIE)) {
+      res.cookies.delete(SESSION_COOKIE);
+    }
+    return res;
   }
   if (session && isLogin) {
     return NextResponse.redirect(new URL("/admin", request.url));

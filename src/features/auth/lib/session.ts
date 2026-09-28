@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
 import { SESSION_COOKIE, SESSION_TTL_SECONDS, signSession, verifySession, type SessionPayload } from "./token";
 
 export async function createSession(payload: SessionPayload) {
@@ -20,7 +21,24 @@ export async function deleteSession() {
 }
 
 export const getSession = cache(async () => {
-  return verifySession((await cookies()).get(SESSION_COOKIE)?.value);
+  const payload = await verifySession((await cookies()).get(SESSION_COOKIE)?.value);
+  if (!payload) return null;
+
+  try {
+    const user = await db.adminUser.findUnique({
+      where: { id: payload.userId },
+      select: { sessionVersion: true },
+    });
+
+    if (!user || user.sessionVersion !== payload.sessionVersion) {
+      return null;
+    }
+  } catch {
+    // If DB is temporarily unavailable, fall back to null for strict security
+    return null;
+  }
+
+  return payload;
 });
 
 /**
@@ -29,6 +47,8 @@ export const getSession = cache(async () => {
  */
 export async function requireAdmin() {
   const session = await getSession();
-  if (!session) redirect("/admin/login");
+  if (!session) {
+    redirect("/admin/login");
+  }
   return session;
 }
