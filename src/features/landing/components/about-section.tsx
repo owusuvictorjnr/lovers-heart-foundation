@@ -17,8 +17,7 @@ export function AboutSection() {
           <h2 className="text-[clamp(1.8rem,3.5vw,2.6rem)]">Faith in action, one home at a time.</h2>
           <p className="mt-4">
             Lovers Heart Foundation started with a simple belief: the children in Ghana&apos;s orphanages and children&apos;s homes are not
-            forgotten.{" "}
-            <mark className="rounded bg-gold-soft px-1 text-[#7a5200]">[Placeholder: founding story, year and founder.]</mark>
+            forgotten. Founded out of deep compassion and love, we are dedicated to extending hope, nourishment, and educational support to vulnerable children across Ghanaian communities.
           </p>
           <p className="mt-4">
             Each year we raise support from individuals, churches and businesses. Then we visit the homes ourselves with

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { siteConfig } from "@/config/site";
+import { AppBody } from "@/components/layout/app-body";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -16,11 +17,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
-      <body>
+    <html lang="en" className={`${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
+      <AppBody>
         {children}
         <Toaster position="bottom-center" richColors />
-      </body>
+      </AppBody>
     </html>
   );
 }

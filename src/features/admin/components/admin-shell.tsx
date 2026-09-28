@@ -15,6 +15,7 @@ export async function AdminShell({ session, children }: { session: SessionPayloa
     { href: "/admin/outreach", label: "Outreach", icon: "📅" },
     { href: "/admin/messages", label: "Messages", icon: "✉️", count: unread },
     { href: "/admin/volunteers", label: "Volunteers", icon: "🤝", count: newVolunteers },
+    { href: "/admin/settings", label: "Settings", icon: "⚙️" },
   ];
 
   return (
