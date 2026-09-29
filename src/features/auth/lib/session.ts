@@ -21,8 +21,19 @@ export async function deleteSession() {
 }
 
 export const getSession = cache(async () => {
-  const payload = await verifySession((await cookies()).get(SESSION_COOKIE)?.value);
-  if (!payload) return null;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const payload = await verifySession(token);
+  if (!payload) {
+    if (token) {
+      try {
+        cookieStore.delete(SESSION_COOKIE);
+      } catch {
+        // Safe ignore in read-only render contexts
+      }
+    }
+    return null;
+  }
 
   try {
     const user = await db.adminUser.findUnique({
@@ -31,6 +42,11 @@ export const getSession = cache(async () => {
     });
 
     if (!user || user.sessionVersion !== payload.sessionVersion) {
+      try {
+        cookieStore.delete(SESSION_COOKIE);
+      } catch {
+        // Safe ignore in read-only render contexts
+      }
       return null;
     }
   } catch {
@@ -48,6 +64,11 @@ export const getSession = cache(async () => {
 export async function requireAdmin() {
   const session = await getSession();
   if (!session) {
+    try {
+      (await cookies()).delete(SESSION_COOKIE);
+    } catch {
+      // Safe ignore in read-only render contexts
+    }
     redirect("/admin/login");
   }
   return session;

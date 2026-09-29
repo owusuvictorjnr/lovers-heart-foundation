@@ -3,6 +3,9 @@ import { Fraunces, Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { siteConfig } from "@/config/site";
 import { AppBody } from "@/components/layout/app-body";
+import { SmoothScrollProvider } from "@/components/layout/smooth-scroll-provider";
+import { ScrollProgressBar } from "@/components/layout/scroll-progress-bar";
+import { BackToTop } from "@/components/layout/back-to-top";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -19,8 +22,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <AppBody>
-        {children}
-        <Toaster position="bottom-center" richColors />
+        <SmoothScrollProvider>
+          <ScrollProgressBar />
+          {children}
+          <BackToTop />
+          <Toaster position="bottom-center" richColors />
+        </SmoothScrollProvider>
       </AppBody>
     </html>
   );

@@ -119,3 +119,10 @@ model RateLimit {
   @@index([resetAt])
 }
 
+model SiteContent {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+
