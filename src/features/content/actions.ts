@@ -13,8 +13,6 @@ import {
 } from "./schemas";
 import type { AboutContent, HeroContent, OutreachContent } from "./types";
 
-export { imagesJsonSchema } from "./schemas";
-
 export async function updateHeroContent(
   _prev: ActionResult<void>,
   formData: FormData,
