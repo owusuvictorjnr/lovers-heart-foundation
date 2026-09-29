@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import bcrypt from "bcryptjs";
-import { signSession, verifySession, type SessionPayload } from "../src/features/auth/lib/token";
+import { signSession, verifySession, SESSION_COOKIE, type SessionPayload } from "../src/features/auth/lib/token";
 import { loginSchema, changePasswordSchema } from "../src/features/auth/schemas";
 
 describe("Auth & Session Security", () => {
@@ -9,9 +9,15 @@ describe("Auth & Session Security", () => {
     userId: "usr_12345",
     email: "admin@loversheartfoundation.org",
     name: "Admin User",
+    sessionVersion: 1,
   };
 
-  it("signs and verifies valid session tokens", async () => {
+  it("uses an isolated project session cookie name", () => {
+    assert.ok(typeof SESSION_COOKIE === "string");
+    assert.ok(SESSION_COOKIE === "__Host-lhf_session" || SESSION_COOKIE === "lhf_session");
+  });
+
+  it("signs and verifies valid session tokens with sessionVersion", async () => {
     const token = await signSession(sampleUser);
     assert.ok(typeof token === "string" && token.length > 50);
 
@@ -20,6 +26,7 @@ describe("Auth & Session Security", () => {
     assert.equal(payload.userId, sampleUser.userId);
     assert.equal(payload.email, sampleUser.email);
     assert.equal(payload.name, sampleUser.name);
+    assert.equal(payload.sessionVersion, sampleUser.sessionVersion);
   });
 
   it("rejects tampered tokens", async () => {
@@ -103,6 +110,59 @@ describe("Auth & Session Security", () => {
     await clearLoginRateLimit(testEmail);
     const cleared = await checkLoginRateLimit(testEmail);
     assert.equal(cleared.allowed, true);
+  });
+
+  it("handles concurrent failed login attempts atomically", async () => {
+    const { checkLoginRateLimit, recordFailedLogin, clearLoginRateLimit } = await import(
+      "../src/features/auth/lib/rate-limit"
+    );
+
+    const concurrentEmail = `concurrent-${Date.now()}@example.com`;
+    await clearLoginRateLimit(concurrentEmail);
+
+    // Fire 6 failed attempts concurrently in parallel
+    await Promise.all(
+      Array.from({ length: 6 }, () => recordFailedLogin(concurrentEmail))
+    );
+
+    // Concurrently recorded attempts must result in rate limit being exceeded
+    const status = await checkLoginRateLimit(concurrentEmail);
+    assert.equal(status.allowed, false);
+    assert.equal(status.remaining, 0);
+    assert.ok(status.retryAfterSeconds > 0);
+
+    await clearLoginRateLimit(concurrentEmail);
+  });
+
+  it("redirects authenticated users away from /admin/login in proxy", async () => {
+    const { proxy } = await import("../src/proxy");
+    const token = await signSession(sampleUser);
+
+    // Case 1: Authenticated user visiting /admin/login -> redirect to /admin
+    const reqAuthLogin = {
+      nextUrl: new URL("http://localhost:3000/admin/login"),
+      url: "http://localhost:3000/admin/login",
+      cookies: {
+        get: (name: string) => (name === SESSION_COOKIE ? { value: token } : undefined),
+      },
+    } as any;
+
+    const resAuthLogin = await proxy(reqAuthLogin);
+    assert.equal(resAuthLogin.status, 307);
+    assert.equal(resAuthLogin.headers.get("location"), "http://localhost:3000/admin");
+
+    // Case 2: Unauthenticated user visiting /admin -> redirect to /admin/login
+    const reqUnauthAdmin = {
+      nextUrl: new URL("http://localhost:3000/admin"),
+      url: "http://localhost:3000/admin",
+      cookies: {
+        get: () => undefined,
+      },
+    } as any;
+
+    const resUnauthAdmin = await proxy(reqUnauthAdmin);
+    assert.equal(resUnauthAdmin.status, 307);
+    assert.equal(resUnauthAdmin.headers.get("location"), "http://localhost:3000/admin/login");
   });
 });
 

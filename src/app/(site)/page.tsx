@@ -8,19 +8,30 @@ import { getImpactStats } from "@/features/landing/queries";
 import { ContactSection } from "@/features/messages/components/contact-section";
 import { OutreachSection } from "@/features/outreach/components/outreach-section";
 import { GetInvolvedSection } from "@/features/volunteers/components/get-involved-section";
+import {
+  getAboutContent,
+  getHeroContent,
+  getOutreachContent,
+} from "@/features/content/queries";
 
 // Rebuilt at most hourly; admin changes trigger an immediate refresh via revalidatePath("/")
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const stats = await getImpactStats();
+  const [stats, heroContent, aboutContent, outreachContent] = await Promise.all([
+    getImpactStats(),
+    getHeroContent(),
+    getAboutContent(),
+    getOutreachContent(),
+  ]);
+
   return (
     <>
-      <HeroSection years={stats.years} />
-      <AboutSection />
+      <HeroSection years={stats.years} content={heroContent} />
+      <AboutSection content={aboutContent} />
       <ImpactSection stats={stats} />
       <HomesSection />
-      <OutreachSection />
+      <OutreachSection content={outreachContent} />
       <GallerySection />
       <DonateSection />
       <GetInvolvedSection />

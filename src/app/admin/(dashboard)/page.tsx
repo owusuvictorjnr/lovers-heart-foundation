@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { StatCard } from "@/features/admin/components/stat-card";
@@ -24,7 +25,13 @@ export default async function AdminOverviewPage() {
       <Card className="mt-6 p-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-xl">Latest donations</h2>
-          <Link href="/admin/donations" className="text-sm font-semibold text-forest">View all →</Link>
+          <Link
+            href="/admin/donations"
+            className="group inline-flex items-center gap-1 text-sm font-semibold text-forest hover:text-forest-light transition-colors"
+          >
+            <span>View all</span>
+            <ChevronRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
         {donations.recent.length ? (
           <ul className="divide-y divide-line">

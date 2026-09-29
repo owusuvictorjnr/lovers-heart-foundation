@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "AdminUser" ADD COLUMN IF NOT EXISTS "sessionVersion" INTEGER NOT NULL DEFAULT 1;

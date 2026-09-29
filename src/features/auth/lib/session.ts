@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
 import { SESSION_COOKIE, SESSION_TTL_SECONDS, signSession, verifySession, type SessionPayload } from "./token";
 
 export async function createSession(payload: SessionPayload) {
@@ -16,11 +17,58 @@ export async function createSession(payload: SessionPayload) {
 }
 
 export async function deleteSession() {
-  (await cookies()).delete(SESSION_COOKIE);
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE);
+  cookieStore.delete("__Host-lhf_session");
+  cookieStore.delete("lhf_session");
+  cookieStore.delete("gia_session");
 }
 
 export const getSession = cache(async () => {
-  return verifySession((await cookies()).get(SESSION_COOKIE)?.value);
+  const cookieStore = await cookies();
+  const token =
+    cookieStore.get(SESSION_COOKIE)?.value ||
+    cookieStore.get("__Host-lhf_session")?.value ||
+    cookieStore.get("lhf_session")?.value ||
+    cookieStore.get("gia_session")?.value;
+  const payload = await verifySession(token);
+  if (!payload) {
+    if (token) {
+      try {
+        cookieStore.delete(SESSION_COOKIE);
+        cookieStore.delete("__Host-lhf_session");
+        cookieStore.delete("lhf_session");
+        cookieStore.delete("gia_session");
+      } catch {
+        // Safe ignore in read-only render contexts
+      }
+    }
+    return null;
+  }
+
+  try {
+    const user = await db.adminUser.findUnique({
+      where: { id: payload.userId },
+      select: { sessionVersion: true },
+    });
+
+    if (!user || user.sessionVersion !== payload.sessionVersion) {
+      try {
+        cookieStore.delete(SESSION_COOKIE);
+        cookieStore.delete("__Host-lhf_session");
+        cookieStore.delete("lhf_session");
+        cookieStore.delete("gia_session");
+      } catch {
+        // Safe ignore in read-only render contexts
+      }
+      return null;
+    }
+  } catch {
+    // If DB is temporarily unavailable, fall back to null for strict security
+    return null;
+  }
+
+  return payload;
 });
 
 /**
@@ -29,6 +77,17 @@ export const getSession = cache(async () => {
  */
 export async function requireAdmin() {
   const session = await getSession();
-  if (!session) redirect("/admin/login");
+  if (!session) {
+    try {
+      const cookieStore = await cookies();
+      cookieStore.delete(SESSION_COOKIE);
+      cookieStore.delete("__Host-lhf_session");
+      cookieStore.delete("lhf_session");
+      cookieStore.delete("gia_session");
+    } catch {
+      // Safe ignore in read-only render contexts
+    }
+    redirect("/admin/login");
+  }
   return session;
 }

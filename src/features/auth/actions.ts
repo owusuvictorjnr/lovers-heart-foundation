@@ -7,6 +7,7 @@ import { validationError, type ActionResult } from "@/lib/action-result";
 import { createSession, deleteSession, requireAdmin } from "./lib/session";
 import { loginSchema, changePasswordSchema } from "./schemas";
 
+import { logAuditEvent } from "@/lib/audit";
 import { checkLoginRateLimit, recordFailedLogin, clearLoginRateLimit } from "./lib/rate-limit";
 
 export async function login(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -32,7 +33,7 @@ export async function login(_prev: ActionResult, formData: FormData): Promise<Ac
   }
 
   await clearLoginRateLimit(email);
-  await createSession({ userId: user.id, email: user.email, name: user.name });
+  await createSession({ userId: user.id, email: user.email, name: user.name, sessionVersion: user.sessionVersion });
   redirect("/admin");
 }
 
@@ -56,11 +57,31 @@ export async function changePassword(_prev: ActionResult, formData: FormData): P
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 12);
-  await db.adminUser.update({
+  const updatedUser = await db.adminUser.update({
     where: { id: user.id },
-    data: { passwordHash },
+    data: {
+      passwordHash,
+      sessionVersion: { increment: 1 },
+    },
   });
 
-  return { ok: true, message: "Password updated successfully" };
+  // Re-issue the session cookie with updated sessionVersion for this client, revoking all other existing sessions
+  await createSession({
+    userId: updatedUser.id,
+    email: updatedUser.email,
+    name: updatedUser.name,
+    sessionVersion: updatedUser.sessionVersion,
+  });
+
+  logAuditEvent({
+    action: "PASSWORD_CHANGE",
+    actor: { userId: session.userId, email: session.email },
+    details: {
+      message: "Admin password changed successfully, sessionVersion incremented",
+      newSessionVersion: updatedUser.sessionVersion,
+    },
+  });
+
+  return { ok: true, message: "Password updated successfully. All other active sessions have been revoked." };
 }
 

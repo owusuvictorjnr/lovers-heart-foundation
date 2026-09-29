@@ -1,67 +1,196 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Heart } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { Container } from "@/components/ui/section";
+import { useSmoothScroll } from "@/components/layout/smooth-scroll-provider";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/#about", label: "About" },
-  { href: "/#impact", label: "Impact" },
-  { href: "/#homes", label: "Homes" },
-  { href: "/#outreach", label: "Outreach" },
-  { href: "/#gallery", label: "Gallery" },
-  { href: "/#volunteer", label: "Volunteer" },
-  { href: "/#contact", label: "Contact" },
+  { href: "/#about", id: "about", label: "About Us" },
+  { href: "/#impact", id: "impact", label: "Our Impact" },
+  { href: "/#homes", id: "homes", label: "Partner Homes" },
+  { href: "/#outreach", id: "outreach", label: "Outreaches" },
+  { href: "/#gallery", id: "gallery", label: "Gallery" },
+  { href: "/#volunteer", id: "volunteer", label: "Volunteer" },
+  { href: "/#contact", id: "contact", label: "Contact" },
 ];
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const { isScrolled, scrollTo } = useSmoothScroll();
+  const [activeSection, setActiveSection] = useState<string>("");
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: "-25% 0px -65% 0px",
+        threshold: 0,
+      },
+    );
+
+    links.forEach((l) => {
+      const el = document.getElementById(l.id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (href.startsWith("/#") || href.startsWith("#")) {
+      const id = href.replace(/^\/?#/, "");
+      const el = document.getElementById(id);
+      if (el) {
+        e.preventDefault();
+        setOpen(false);
+        history.pushState(null, "", `#${id}`);
+        scrollTo(el, { offset: -85, duration: 1.2 });
+      }
+    }
+  };
+
   return (
-    <header className={cn("sticky top-0 z-50 border-b bg-cream/90 backdrop-blur-md transition", scrolled ? "border-line" : "border-transparent")}>
-      <Container className="flex h-18 items-center justify-between">
-        <Logo />
-        <button
-          className="grid size-10 place-items-center lg:hidden"
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-        >
-          <span className="grid gap-1.5">
-            <span className={cn("block h-0.5 w-6 bg-ink transition", open && "translate-y-2 rotate-45")} />
-            <span className={cn("block h-0.5 w-6 bg-ink transition", open && "opacity-0")} />
-            <span className={cn("block h-0.5 w-6 bg-ink transition", open && "-translate-y-2 -rotate-45")} />
-          </span>
-        </button>
-        <nav
-          aria-label="Main"
+    <>
+      {/* Top mission & MoMo helper ribbon */}
+      <div className="bg-forest px-4 py-2 text-xs font-medium text-white">
+        <Container className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="inline-block size-2 rounded-full bg-gold animate-pulse" />
+            <span>
+              <strong>Lovers Heart Foundation:</strong> Dedicated to orphanages &amp; children&apos;s homes across Ghana.
+            </span>
+          </div>
+          <div className="hidden sm:flex items-center gap-4 text-white/80 text-[11px]">
+            <span>MTN MoMo &amp; Telecel Cash Accepted</span>
+            <span className="text-white/30">•</span>
+            <span>100% Direct Giving</span>
+          </div>
+        </Container>
+      </div>
+
+      <header
+        className={cn(
+          "sticky top-0 z-50 transition-all duration-300",
+          isScrolled
+            ? "border-b border-line bg-cream/95 backdrop-blur-md shadow-xs py-3.5"
+            : "border-b border-transparent bg-cream/80 backdrop-blur-sm py-4.5",
+        )}
+      >
+        <Container className="flex items-center justify-between">
+          <Logo />
+
+          {/* Desktop Navigation */}
+          <nav aria-label="Main" className="hidden lg:flex items-center gap-1.5">
+            {links.map((l) => {
+              const isActive = activeSection === l.id;
+              return (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  onClick={(e) => handleNavClick(e, l.href)}
+                  className={cn(
+                    "relative rounded-full px-3.5 py-1.5 text-[14px] font-medium transition-all duration-200",
+                    isActive
+                      ? "text-forest font-bold bg-forest/8 shadow-2xs"
+                      : "text-ink-light hover:text-forest hover:bg-sand/60",
+                  )}
+                >
+                  {l.label}
+                  {isActive && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-gold"
+                    />
+                  )}
+                </a>
+              );
+            })}
+          </nav>
+
+          <div className="hidden lg:flex items-center gap-3">
+            <ButtonLink
+              href="/#donate"
+              size="sm"
+              variant="primary"
+              onClick={(e) => handleNavClick(e, "/#donate")}
+              className="gap-2 shadow-[0_4px_12px_rgba(229,155,16,0.3)] transition-transform hover:scale-105 active:scale-95"
+            >
+              <Heart className="size-4 fill-ink/10" />
+              <span>Donate Now</span>
+            </ButtonLink>
+          </div>
+
+          {/* Mobile hamburger button */}
+          <button
+            className="grid size-10 place-items-center rounded-xl border border-line bg-cream-pure text-ink lg:hidden cursor-pointer active:scale-95 transition-transform"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            <span className="grid gap-1.5">
+              <span className={cn("block h-0.5 w-5 bg-ink transition-transform", open && "translate-y-2 rotate-45")} />
+              <span className={cn("block h-0.5 w-5 bg-ink transition-opacity", open && "opacity-0")} />
+              <span className={cn("block h-0.5 w-5 bg-ink transition-transform", open && "-translate-y-2 -rotate-45")} />
+            </span>
+          </button>
+        </Container>
+
+        {/* Mobile Navigation Drawer */}
+        <div
+          data-lenis-prevent
           className={cn(
-            "absolute inset-x-0 top-18 flex-col border-b border-line bg-cream px-4 pb-5 lg:static lg:flex lg:flex-row lg:items-center lg:gap-6 lg:border-0 lg:bg-transparent lg:p-0",
-            open ? "flex" : "hidden",
+            "lg:hidden absolute inset-x-0 top-full border-b border-line bg-cream-pure/98 px-6 py-6 shadow-xl backdrop-blur-md transition-all duration-300",
+            open ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2 pointer-events-none",
           )}
         >
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="border-b border-line py-3 text-[15px] font-medium lg:border-0 lg:py-0 lg:hover:text-forest-light"
+          <nav className="flex flex-col gap-1 max-h-[60vh] overflow-y-auto scrollbar-none">
+            {links.map((l) => {
+              const isActive = activeSection === l.id;
+              return (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  onClick={(e) => handleNavClick(e, l.href)}
+                  className={cn(
+                    "flex items-center justify-between rounded-xl px-3.5 py-3 text-base font-medium transition-all",
+                    isActive
+                      ? "bg-forest-soft text-forest font-bold border-l-3 border-gold pl-4"
+                      : "text-ink hover:bg-sand/70 hover:text-forest",
+                  )}
+                >
+                  <span>{l.label}</span>
+                  {isActive && <span className="size-1.5 rounded-full bg-gold" />}
+                </a>
+              );
+            })}
+          </nav>
+          <div className="mt-5 pt-4 border-t border-line flex flex-col gap-3">
+            <ButtonLink
+              href="/#donate"
+              size="md"
+              variant="primary"
+              className="w-full justify-center gap-2"
+              onClick={(e) => handleNavClick(e, "/#donate")}
             >
-              {l.label}
-            </a>
-          ))}
-          <ButtonLink href="/#donate" size="sm" className="mt-4 lg:mt-0" onClick={() => setOpen(false)}>Donate</ButtonLink>
-        </nav>
-      </Container>
-    </header>
+              <Heart className="size-4" />
+              <span>Donate (MoMo or Card)</span>
+            </ButtonLink>
+          </div>
+        </div>
+      </header>
+    </>
   );
 }

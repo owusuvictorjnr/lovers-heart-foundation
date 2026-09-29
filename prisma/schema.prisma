@@ -22,11 +22,12 @@ enum VolunteerStatus {
 }
 
 model AdminUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  passwordHash String
-  createdAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String
+  passwordHash   String
+  sessionVersion Int      @default(1)
+  createdAt      DateTime @default(now())
 }
 
 model Donation {
@@ -117,4 +118,11 @@ model RateLimit {
 
   @@index([resetAt])
 }
+
+model SiteContent {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
 
