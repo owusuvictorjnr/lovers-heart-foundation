@@ -10,12 +10,18 @@ function createClient() {
   const isSupabase =
     connectionString?.includes("supabase.com") ||
     connectionString?.includes("pooler.supabase.com");
-  const cleanUrl = isSupabase
+  let cleanUrl = isSupabase
     ? connectionString?.replace(/[?&]sslmode=[^&]+/, "")
     : connectionString;
+  if (isSupabase && cleanUrl?.includes("pooler.supabase.com:5432")) {
+    cleanUrl = cleanUrl.replace("pooler.supabase.com:5432", "pooler.supabase.com:6543");
+  }
   const pool = new Pool({
     connectionString: cleanUrl,
     ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
+    max: 5,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
   });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });

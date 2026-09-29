@@ -14,8 +14,9 @@ import {
   getOutreachContent,
 } from "@/features/content/queries";
 
-// Rebuilt at most hourly; admin changes trigger an immediate refresh via revalidatePath("/")
-export const revalidate = 3600;
+// Always fetch fresh content from the database on page request
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   const [stats, heroContent, aboutContent, outreachContent] = await Promise.all([

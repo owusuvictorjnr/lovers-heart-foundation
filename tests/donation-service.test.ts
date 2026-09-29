@@ -5,11 +5,10 @@ import { applyPaystackResult } from "../src/features/donations/service";
 import type { PaystackTransaction } from "../src/features/donations/lib/paystack";
 
 describe("Donation Service - State Transitions & Idempotency", () => {
-  const reference = `TEST-DONATION-${Date.now()}`;
+  let reference: string;
 
   beforeEach(async () => {
-    // Clean up or ensure baseline test record exists
-    await db.donation.deleteMany({ where: { reference } }).catch(() => {});
+    reference = `TEST-DONATION-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     await db.donation.create({
       data: {
         reference,

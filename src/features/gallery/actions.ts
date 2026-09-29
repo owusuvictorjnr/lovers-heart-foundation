@@ -8,7 +8,8 @@ import { destroyImage } from "@/features/media/lib/cloudinary";
 import { galleryMetaSchema, newGalleryImageSchema, type NewGalleryImage } from "./schemas";
 
 function refresh() {
-  revalidatePath("/");
+  revalidatePath("/", "layout");
+  revalidatePath("/", "page");
   revalidatePath("/admin/gallery");
 }
 

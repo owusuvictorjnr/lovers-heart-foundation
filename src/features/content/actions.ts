@@ -63,7 +63,8 @@ export async function updateHeroContent(
     details: { section: "hero", imageCount: parsed.data.imagesJson.length },
   });
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
+  revalidatePath("/", "page");
   revalidatePath("/admin/content");
 
   return { ok: true, message: "Hero section content updated successfully!" };
@@ -134,7 +135,8 @@ export async function updateAboutContent(
     details: { section: "about", imageCount: parsed.data.imagesJson.length },
   });
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
+  revalidatePath("/", "page");
   revalidatePath("/admin/content");
 
   return { ok: true, message: "About Us content updated successfully!" };
@@ -190,7 +192,8 @@ export async function updateOutreachContent(
     details: { section: "outreach", imageCount: parsed.data.imagesJson.length },
   });
 
-  revalidatePath("/");
+  revalidatePath("/", "layout");
+  revalidatePath("/", "page");
   revalidatePath("/admin/content");
 
   return { ok: true, message: "Outreach Journey content updated successfully!" };

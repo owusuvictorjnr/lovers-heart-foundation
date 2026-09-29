@@ -8,7 +8,8 @@ import { validationError, type ActionResult } from "@/lib/action-result";
 import { homeSchema } from "./schemas";
 
 function refresh() {
-  revalidatePath("/");
+  revalidatePath("/", "layout");
+  revalidatePath("/", "page");
   revalidatePath("/admin/homes");
 }
 
