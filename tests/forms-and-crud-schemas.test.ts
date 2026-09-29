@@ -100,12 +100,13 @@ describe("Forms & Entity Schema Validations", () => {
   it("validates imagesJson schema strictly with Cloudinary URL whitelist and max count", () => {
     const validList = JSON.stringify([
       "https://res.cloudinary.com/my-cloud/image/upload/v1234/hero1.jpg",
-      "https://res.cloudinary.com/my-cloud/image/upload/v1234/hero2.jpg",
+      "/images/hero-children.jpg",
     ]);
     const validParse = imagesJsonSchema.safeParse(validList);
     assert.ok(validParse.success);
     assert.equal(validParse.data.length, 2);
     assert.equal(validParse.data[0], "https://res.cloudinary.com/my-cloud/image/upload/v1234/hero1.jpg");
+    assert.equal(validParse.data[1], "/images/hero-children.jpg");
 
     // Empty list is valid
     const emptyParse = imagesJsonSchema.safeParse("[]");

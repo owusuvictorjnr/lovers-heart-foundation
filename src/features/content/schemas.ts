@@ -1,5 +1,27 @@
 import { z } from "zod";
 
+function isAllowedImageUrl(url: unknown): boolean {
+  if (typeof url !== "string") return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+
+  // Safe local public static assets (e.g. /images/hero-children.jpg)
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//") && !trimmed.includes(":") && !trimmed.includes("\\")) {
+    return /^\/[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*$/.test(trimmed);
+  }
+
+  // Approved Cloudinary HTTPS URLs
+  try {
+    const parsed = new URL(trimmed);
+    return (
+      parsed.protocol === "https:" &&
+      (parsed.hostname === "res.cloudinary.com" || parsed.hostname.endsWith(".cloudinary.com"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export const imagesJsonSchema = z
   .string()
   .transform((value, ctx) => {
@@ -15,22 +37,11 @@ export const imagesJsonSchema = z
   })
   .pipe(
     z
-      .array(z.string().url())
-      .max(8)
+      .array(z.string())
+      .max(8, "A maximum of 8 images is allowed")
       .refine(
-        (urls) =>
-          urls.every((url) => {
-            try {
-              const parsed = new URL(url);
-              return (
-                parsed.protocol === "https:" &&
-                parsed.hostname === "res.cloudinary.com"
-              );
-            } catch {
-              return false;
-            }
-          }),
-        "Only approved Cloudinary image URLs are allowed",
+        (urls) => urls.every(isAllowedImageUrl),
+        "Only approved Cloudinary image URLs or local site images are allowed",
       ),
   );
 
