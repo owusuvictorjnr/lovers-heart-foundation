@@ -69,33 +69,34 @@ export function DonateForm() {
       <form
         onSubmit={handleSubmit}
         noValidate
-        className="mx-auto max-w-3xl rounded-3xl border-2 border-white/20 bg-cream-pure p-6 text-ink shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-9"
+        className="mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border-2 border-white/20 bg-cream-pure p-4.5 text-ink shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-7 md:p-9"
       >
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-line/80 pb-5">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line/80 pb-5">
           <div>
             <span className="eyebrow mb-1">Make a Meaningful Gift</span>
-            <h3 className="font-serif text-2xl font-bold text-ink">Online Donation Station</h3>
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-ink">Online Donation Station</h3>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-forest/15 bg-forest-soft px-3.5 py-1.5 text-xs font-semibold text-forest shadow-2xs">
-            <ShieldCheck className="size-4 text-forest" />
+          <div className="inline-flex self-start sm:self-auto items-center gap-2 rounded-full border border-forest/15 bg-forest-soft px-3 py-1.5 text-xs font-semibold text-forest shadow-2xs">
+            <ShieldCheck className="size-4 text-forest shrink-0" />
             <span>Paystack Secured · MoMo &amp; Cards</span>
           </div>
         </div>
 
         <fieldset>
-          <legend className="mb-3 text-sm font-bold text-ink flex items-center justify-between">
+          <legend className="mb-3 text-sm font-bold text-ink flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
             <span>Select Amount (Ghana Cedis)</span>
             <span className="text-xs text-muted font-normal">Choose preset or type custom</span>
           </legend>
 
-          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
-            {siteConfig.donationPresets.map((p) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-2.5">
+            {siteConfig.donationPresets.map((p, idx) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => setAmount(p)}
                 className={cn(
-                  "cursor-pointer rounded-2xl border-2 py-3.5 px-2 text-center font-bold text-sm sm:text-base transition duration-200",
+                  "cursor-pointer rounded-2xl border-2 py-3 px-2 text-center font-bold text-sm sm:text-base transition duration-200",
+                  idx === 4 && "col-span-2 sm:col-span-1",
                   amount === p
                     ? "border-forest bg-forest text-gold shadow-xs -translate-y-0.5"
                     : "border-line bg-cream hover:border-gold hover:bg-gold-soft/30 text-ink",
@@ -107,9 +108,9 @@ export function DonateForm() {
           </div>
 
           {/* Custom amount input */}
-          <div className="mt-4">
+          <div className="mt-3.5">
             <label className="flex items-center overflow-hidden rounded-2xl border-2 border-line bg-cream transition focus-within:border-forest focus-within:bg-cream-pure focus-within:shadow-xs">
-              <span className="px-5 font-bold text-forest text-lg">GH₵</span>
+              <span className="pl-4 pr-2 sm:px-5 font-bold text-forest text-base sm:text-lg shrink-0">GH₵</span>
               <input
                 type="number"
                 min={1}
@@ -119,7 +120,7 @@ export function DonateForm() {
                 value={amount}
                 placeholder="Enter custom amount"
                 onChange={(e) => setAmount(e.target.value === "" ? "" : Math.floor(+e.target.value))}
-                className="min-w-0 flex-1 bg-transparent py-3.5 pr-4 text-xl font-bold text-ink outline-none placeholder:text-muted/50 placeholder:font-normal placeholder:text-base"
+                className="min-w-0 flex-1 bg-transparent py-3 sm:py-3.5 pr-4 text-lg sm:text-xl font-bold text-ink outline-none placeholder:text-muted/50 placeholder:font-normal placeholder:text-sm sm:placeholder:text-base"
               />
             </label>
           </div>
@@ -130,7 +131,7 @@ export function DonateForm() {
               <p className="text-xs font-semibold text-clay">{errors.amount[0]}</p>
             ) : hint ? (
               <p className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold-soft px-3 py-1.5 text-xs font-semibold text-[#7a4800]">
-                <span className="size-1.5 rounded-full bg-[#7a4800]" />
+                <span className="size-1.5 rounded-full bg-[#7a4800] shrink-0" />
                 <span>GH₵ {Number(amount).toLocaleString()} {hint.text}</span>
               </p>
             ) : null}

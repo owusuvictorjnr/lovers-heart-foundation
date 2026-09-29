@@ -149,7 +149,7 @@ export async function GET(request: Request) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Donations Statement - God Is Alive Foundation</title>
+  <title>Donation Statement - Lovers Heart Foundation</title>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -162,7 +162,13 @@ export async function GET(request: Request) {
       background-color: #f7f4ec;
       color: #1a2e22;
       line-height: 1.5;
-      padding: 24px;
+      padding: 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+    @media (min-width: 640px) {
+      body {
+        padding: 24px;
+      }
     }
 
     .container {
@@ -171,30 +177,49 @@ export async function GET(request: Request) {
       background: #ffffff;
       border: 1px solid #e5dec9;
       border-radius: 16px;
-      padding: 36px 40px;
+      padding: 20px 16px;
       box-shadow: 0 4px 20px rgba(23, 21, 18, 0.05);
+      overflow: hidden;
+    }
+    @media (min-width: 640px) {
+      .container {
+        padding: 36px 40px;
+      }
     }
 
     .no-print {
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 12px;
       background: #143826;
       color: #ffffff;
-      padding: 12px 20px;
+      padding: 14px 16px;
       border-radius: 12px;
       max-width: 1040px;
       margin-left: auto;
       margin-right: auto;
+    }
+    @media (min-width: 640px) {
+      .no-print {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        margin-bottom: 24px;
+      }
+    }
+    .no-print-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 8px;
       font-weight: 600;
       font-size: 13px;
@@ -202,6 +227,7 @@ export async function GET(request: Request) {
       text-decoration: none;
       border: none;
       transition: opacity 0.2s;
+      white-space: nowrap;
     }
     .btn-gold { background: #d4a347; color: #143826; }
     .btn-gold:hover { opacity: 0.9; }
@@ -210,18 +236,32 @@ export async function GET(request: Request) {
 
     .header {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+      flex-direction: column;
+      gap: 14px;
       border-bottom: 2px solid #143826;
-      padding-bottom: 20px;
-      margin-bottom: 24px;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    @media (min-width: 640px) {
+      .header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 20px;
+        margin-bottom: 24px;
+      }
     }
 
     .brand h1 {
       font-family: "Georgia", "Times New Roman", Times, serif;
-      font-size: 24px;
+      font-size: 22px;
       color: #143826;
       letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+      .brand h1 {
+        font-size: 26px;
+      }
     }
     .brand p {
       font-size: 12px;
@@ -230,9 +270,14 @@ export async function GET(request: Request) {
     }
 
     .meta {
-      text-align: right;
+      text-align: left;
       font-size: 12px;
       color: #637568;
+    }
+    @media (min-width: 640px) {
+      .meta {
+        text-align: right;
+      }
     }
     .meta .title {
       font-size: 14px;
@@ -244,28 +289,40 @@ export async function GET(request: Request) {
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 28px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    @media (min-width: 768px) {
+      .summary-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+      }
     }
     .metric-card {
       background: #faf8f3;
       border: 1px solid #e5dec9;
       border-radius: 10px;
-      padding: 14px 16px;
+      padding: 12px 14px;
     }
     .metric-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
       color: #637568;
       letter-spacing: 0.05em;
     }
     .metric-value {
-      font-size: 20px;
+      font-size: 17px;
       font-weight: 700;
       color: #143826;
       margin-top: 4px;
+    }
+    @media (min-width: 640px) {
+      .metric-value {
+        font-size: 20px;
+      }
     }
     .metric-sub {
       font-size: 11px;
@@ -276,14 +333,25 @@ export async function GET(request: Request) {
     .filter-bar {
       background: #f4f0e6;
       border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 12px;
+      padding: 8px 12px;
+      font-size: 11px;
       color: #554d3f;
+      margin-bottom: 16px;
+      word-break: break-word;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #e5dec9;
     }
 
     table {
       width: 100%;
+      min-width: 640px;
       border-collapse: collapse;
       font-size: 12px;
     }
@@ -305,7 +373,7 @@ export async function GET(request: Request) {
       border-bottom: 1px solid #f0ecdf;
     }
     tbody tr:last-child {
-      border-bottom: 2px solid #143826;
+      border-bottom: none;
     }
     td {
       padding: 9px 8px;
@@ -331,13 +399,21 @@ export async function GET(request: Request) {
     .badge-abandoned { background: #f0f0f0; color: #777777; }
 
     .footer {
-      margin-top: 32px;
+      margin-top: 24px;
       padding-top: 16px;
       border-top: 1px solid #e5dec9;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 8px;
       font-size: 11px;
       color: #8c7b64;
+    }
+    @media (min-width: 640px) {
+      .footer {
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 32px;
+      }
     }
 
     @media print {
@@ -358,6 +434,10 @@ export async function GET(request: Request) {
       .no-print {
         display: none !important;
       }
+      .table-wrap {
+        border: none;
+        overflow: visible;
+      }
       tr {
         page-break-inside: avoid;
       }
@@ -369,7 +449,7 @@ export async function GET(request: Request) {
     <div>
       <strong>Donation Statement Ready</strong> &mdash; Generated ${rows.length} records (${formatCedis(totalSuccessful)} total).
     </div>
-    <div style="display: flex; gap: 8px;">
+    <div class="no-print-actions">
       <button onclick="window.print()" class="btn btn-gold">
         🖨️ Print / Save as PDF
       </button>
@@ -385,8 +465,8 @@ export async function GET(request: Request) {
   <div class="container">
     <header class="header">
       <div class="brand">
-        <h1>God Is Alive Foundation</h1>
-        <p>Lover&apos;s Heart Foundation &bull; Registered Non-Profit Organization &bull; Accra, Ghana</p>
+        <h1>Lovers Heart Foundation</h1>
+        <p>Lovers Heart Foundation &bull; Registered Non-Profit Organization &bull; Accra, Ghana</p>
       </div>
       <div class="meta">
         <div class="title">Donation Report</div>
@@ -424,68 +504,70 @@ export async function GET(request: Request) {
         : ""
     }
 
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Donor</th>
-          <th>Contact</th>
-          <th class="text-right">Amount</th>
-          <th>Status</th>
-          <th>Channel</th>
-          <th>Reference</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${
-          rows.length === 0
-            ? `<tr><td colspan="7" style="text-align: center; padding: 36px; color: #8c7b64;">No donation records match the selected criteria.</td></tr>`
-            : rows
-                .map((d) => {
-                  const badgeClass =
-                    d.status === "SUCCESS"
-                      ? "badge-success"
-                      : d.status === "PENDING"
-                        ? "badge-pending"
-                        : d.status === "FAILED"
-                          ? "badge-failed"
-                          : "badge-abandoned";
-                  const dateStr = formatDate(d.paidAt ?? d.createdAt, true);
-                  const STATUS_LABELS: Record<string, string> = {
-                    SUCCESS: "Success",
-                    PENDING: "Pending",
-                    FAILED: "Failed",
-                    ABANDONED: "Abandoned",
-                  };
-                  const CHANNEL_LABELS: Record<string, string> = {
-                    card: "Card",
-                    bank_transfer: "Bank Transfer",
-                    mobile_money: "Mobile Money",
-                    ussd: "USSD",
-                    qr: "QR",
-                    eft: "EFT",
-                  };
-                  const statusLabel = STATUS_LABELS[d.status] || escapeHtml(d.status);
-                  const rawChannel = (d.channel || "").toLowerCase();
-                  const channelLabel = rawChannel ? (CHANNEL_LABELS[rawChannel] || escapeHtml(rawChannel.replace(/_/g, " "))) : "—";
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Donor</th>
+            <th>Contact</th>
+            <th class="text-right">Amount</th>
+            <th>Status</th>
+            <th>Channel</th>
+            <th>Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            rows.length === 0
+              ? `<tr><td colspan="7" style="text-align: center; padding: 36px; color: #8c7b64;">No donation records match the selected criteria.</td></tr>`
+              : rows
+                  .map((d) => {
+                    const badgeClass =
+                      d.status === "SUCCESS"
+                        ? "badge-success"
+                        : d.status === "PENDING"
+                          ? "badge-pending"
+                          : d.status === "FAILED"
+                            ? "badge-failed"
+                            : "badge-abandoned";
+                    const dateStr = formatDate(d.paidAt ?? d.createdAt, true);
+                    const STATUS_LABELS: Record<string, string> = {
+                      SUCCESS: "Success",
+                      PENDING: "Pending",
+                      FAILED: "Failed",
+                      ABANDONED: "Abandoned",
+                    };
+                    const CHANNEL_LABELS: Record<string, string> = {
+                      card: "Card",
+                      bank_transfer: "Bank Transfer",
+                      mobile_money: "Mobile Money",
+                      ussd: "USSD",
+                      qr: "QR",
+                      eft: "EFT",
+                    };
+                    const statusLabel = STATUS_LABELS[d.status] || escapeHtml(d.status);
+                    const rawChannel = (d.channel || "").toLowerCase();
+                    const channelLabel = rawChannel ? (CHANNEL_LABELS[rawChannel] || escapeHtml(rawChannel.replace(/_/g, " "))) : "—";
 
-                  return `<tr>
-                    <td style="white-space: nowrap; color: #637568;">${escapeHtml(dateStr)}</td>
-                    <td><strong>${escapeHtml(d.donorName)}</strong>${d.anonymous ? ' <span style="font-size:10px; color:#8c7b64;">(anon)</span>' : ""}</td>
-                    <td style="color: #637568;">${escapeHtml(d.email || d.phone || "—")}</td>
-                    <td class="text-right" style="font-weight: 700; white-space: nowrap;">${formatCedis(d.amount)}</td>
-                    <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
-                    <td style="color: #637568;">${channelLabel}</td>
-                    <td class="mono">${escapeHtml(d.reference)}</td>
-                  </tr>`;
-                })
-                .join("")
-        }
-      </tbody>
-    </table>
+                    return `<tr>
+                      <td style="white-space: nowrap; color: #637568;">${escapeHtml(dateStr)}</td>
+                      <td><strong>${escapeHtml(d.donorName)}</strong>${d.anonymous ? ' <span style="font-size:10px; color:#8c7b64;">(anon)</span>' : ""}</td>
+                      <td style="color: #637568;">${escapeHtml(d.email || d.phone || "—")}</td>
+                      <td class="text-right" style="font-weight: 700; white-space: nowrap;">${formatCedis(d.amount)}</td>
+                      <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
+                      <td style="color: #637568;">${channelLabel}</td>
+                      <td class="mono">${escapeHtml(d.reference)}</td>
+                    </tr>`;
+                  })
+                  .join("")
+          }
+        </tbody>
+      </table>
+    </div>
 
     <footer class="footer">
-      <div>Official financial report generated from the God Is Alive Foundation Admin Portal.</div>
+      <div>Official financial report generated from the Lovers Heart Foundation Admin Portal.</div>
       <div>Page 1 of 1</div>
     </footer>
   </div>

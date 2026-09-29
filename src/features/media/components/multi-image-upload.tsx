@@ -55,9 +55,12 @@ export function MultiImageUpload({
         newUrls.push(res.secure_url);
       }
       setImages((prev) => [...prev, ...newUrls]);
-      toast.success(`Successfully uploaded ${newUrls.length} image(s).`);
-    } catch {
-      toast.error("An error occurred during upload. Please try again.");
+      if (newUrls.length > 0) {
+        toast.success(`Successfully uploaded ${newUrls.length} image${newUrls.length === 1 ? "" : "s"}.`);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An error occurred during upload.";
+      toast.error(msg);
     } finally {
       setProgress(null);
       e.target.value = "";
@@ -84,59 +87,59 @@ export function MultiImageUpload({
     <div className="grid gap-3">
       <div>
         <span className="block text-sm font-bold text-ink">{label}</span>
-        {description && <p className="text-xs text-muted">{description}</p>}
+        {description && <p className="text-xs text-muted leading-relaxed mt-0.5">{description}</p>}
       </div>
 
       {/* Hidden input storing JSON array of image URLs */}
       <input type="hidden" name={name} value={JSON.stringify(images)} />
 
       {/* Thumbnails Grid */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {images.map((url, idx) => (
           <div
             key={url + idx}
-            className="group relative size-24 shrink-0 overflow-hidden rounded-2xl border border-line bg-sand shadow-2xs"
+            className="group relative aspect-square w-full overflow-hidden rounded-2xl border border-line bg-sand shadow-2xs"
           >
             <Image
               src={url}
               alt=""
               fill
-              sizes="96px"
+              sizes="(max-width: 640px) 33vw, 120px"
               className="object-cover"
             />
             {/* Slide Index Badge */}
-            <span className="absolute top-1 left-1 grid size-5 place-items-center rounded-full bg-black/60 text-[10px] font-bold text-white backdrop-blur-xs">
+            <span className="absolute top-1 left-1 grid size-5 place-items-center rounded-full bg-black/60 text-[10px] font-bold text-white backdrop-blur-xs z-10">
               {idx + 1}
             </span>
 
-            {/* Hover Actions Toolbar */}
-            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/50 opacity-0 backdrop-blur-2xs transition-opacity group-hover:opacity-100">
+            {/* Hover / Focus Actions Toolbar */}
+            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/50 opacity-0 backdrop-blur-2xs transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 z-20">
               {idx > 0 && (
                 <button
                   type="button"
                   onClick={() => handleMove(idx, "left")}
                   aria-label="Move earlier"
-                  className="grid size-6 place-items-center rounded-full bg-white/20 text-white hover:bg-white/40 cursor-pointer"
+                  className="grid size-6.5 place-items-center rounded-full bg-white/25 text-white hover:bg-white/50 active:scale-95 cursor-pointer"
                 >
-                  <ArrowLeft className="size-3" />
+                  <ArrowLeft className="size-3.5" />
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => handleRemove(idx)}
                 aria-label="Remove image"
-                className="grid size-6 place-items-center rounded-full bg-red-600/80 text-white hover:bg-red-600 cursor-pointer"
+                className="grid size-6.5 place-items-center rounded-full bg-red-600/85 text-white hover:bg-red-600 active:scale-95 cursor-pointer"
               >
-                <Trash2 className="size-3" />
+                <Trash2 className="size-3.5" />
               </button>
               {idx < images.length - 1 && (
                 <button
                   type="button"
                   onClick={() => handleMove(idx, "right")}
                   aria-label="Move later"
-                  className="grid size-6 place-items-center rounded-full bg-white/20 text-white hover:bg-white/40 cursor-pointer"
+                  className="grid size-6.5 place-items-center rounded-full bg-white/25 text-white hover:bg-white/50 active:scale-95 cursor-pointer"
                 >
-                  <ArrowRight className="size-3" />
+                  <ArrowRight className="size-3.5" />
                 </button>
               )}
             </div>
@@ -145,9 +148,9 @@ export function MultiImageUpload({
 
         {/* Upload New Button */}
         {images.length < maxImages && (
-          <label className="flex size-24 shrink-0 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-line bg-cream-pure p-2 text-center text-xs font-semibold text-muted transition hover:border-gold hover:text-forest">
-            <Plus className="size-5 mb-1 text-gold" />
-            <span>
+          <label className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-line bg-cream-pure p-2 text-center text-xs font-semibold text-muted transition hover:border-gold hover:text-forest active:scale-98">
+            <Plus className="size-5 mb-1 text-gold shrink-0" />
+            <span className="leading-tight">
               {progress !== null ? `${progress}%` : "Add Photos"}
             </span>
             <input

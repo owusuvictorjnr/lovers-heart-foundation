@@ -1,12 +1,14 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { ArrowUp } from "lucide-react";
 import { useSmoothScroll } from "./smooth-scroll-provider";
 import { cn } from "@/lib/utils";
 
 export function BackToTop() {
+  const pathname = usePathname();
   const { scrollTo, scrollProgress, scrollY } = useSmoothScroll();
-  const isVisible = scrollY > 280;
+  const isVisible = scrollY > 280 && !pathname?.startsWith("/admin");
 
   const radius = 18;
   const circumference = 2 * Math.PI * radius;
