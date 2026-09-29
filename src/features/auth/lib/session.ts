@@ -17,17 +17,28 @@ export async function createSession(payload: SessionPayload) {
 }
 
 export async function deleteSession() {
-  (await cookies()).delete(SESSION_COOKIE);
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE);
+  cookieStore.delete("__Host-lhf_session");
+  cookieStore.delete("lhf_session");
+  cookieStore.delete("gia_session");
 }
 
 export const getSession = cache(async () => {
   const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const token =
+    cookieStore.get(SESSION_COOKIE)?.value ||
+    cookieStore.get("__Host-lhf_session")?.value ||
+    cookieStore.get("lhf_session")?.value ||
+    cookieStore.get("gia_session")?.value;
   const payload = await verifySession(token);
   if (!payload) {
     if (token) {
       try {
         cookieStore.delete(SESSION_COOKIE);
+        cookieStore.delete("__Host-lhf_session");
+        cookieStore.delete("lhf_session");
+        cookieStore.delete("gia_session");
       } catch {
         // Safe ignore in read-only render contexts
       }
@@ -44,6 +55,9 @@ export const getSession = cache(async () => {
     if (!user || user.sessionVersion !== payload.sessionVersion) {
       try {
         cookieStore.delete(SESSION_COOKIE);
+        cookieStore.delete("__Host-lhf_session");
+        cookieStore.delete("lhf_session");
+        cookieStore.delete("gia_session");
       } catch {
         // Safe ignore in read-only render contexts
       }
@@ -65,7 +79,11 @@ export async function requireAdmin() {
   const session = await getSession();
   if (!session) {
     try {
-      (await cookies()).delete(SESSION_COOKIE);
+      const cookieStore = await cookies();
+      cookieStore.delete(SESSION_COOKIE);
+      cookieStore.delete("__Host-lhf_session");
+      cookieStore.delete("lhf_session");
+      cookieStore.delete("gia_session");
     } catch {
       // Safe ignore in read-only render contexts
     }

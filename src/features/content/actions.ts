@@ -1,55 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/features/auth/lib/session";
+import { logAuditEvent } from "@/lib/audit";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { ActionResult } from "@/lib/action-result";
+import {
+  aboutContentSchema as aboutSchema,
+  heroContentSchema as heroSchema,
+  outreachContentSchema as outreachSchema,
+} from "./schemas";
 import type { AboutContent, HeroContent, OutreachContent } from "./types";
 
-const heroSchema = z.object({
-  badge: z.string().min(1, "Badge text is required").max(120),
-  title: z.string().min(1, "Title is required").max(200),
-  titleHighlight: z.string().min(1, "Title highlight is required").max(100),
-  description: z.string().min(1, "Description is required").max(1000),
-  imagesJson: z.string(),
-  imageCaption: z.string().max(100).default(""),
-  imageSubcaption: z.string().max(200).default(""),
-});
-
-const aboutSchema = z.object({
-  eyebrow: z.string().min(1, "Eyebrow is required").max(100),
-  title: z.string().min(1, "Title is required").max(200),
-  paragraph1: z.string().min(1, "Paragraph 1 is required").max(1000),
-  paragraph2: z.string().min(1, "Paragraph 2 is required").max(1000),
-  imagesJson: z.string(),
-  imageBadge: z.string().max(100).default(""),
-  imageCaption: z.string().max(250).default(""),
-  quote: z.string().min(1, "Quote is required").max(500),
-  quoteAuthor: z.string().min(1, "Quote author is required").max(100),
-  value1Title: z.string().min(1).max(100),
-  value1Text: z.string().min(1).max(300),
-  value2Title: z.string().min(1).max(100),
-  value2Text: z.string().min(1).max(300),
-  value3Title: z.string().min(1).max(100),
-  value3Text: z.string().min(1).max(300),
-});
-
-const outreachSchema = z.object({
-  eyebrow: z.string().min(1, "Eyebrow is required").max(100),
-  title: z.string().min(1, "Title is required").max(200),
-  description: z.string().min(1, "Description is required").max(1000),
-  imagesJson: z.string(),
-  imageTag: z.string().max(100).default("Direct Handover:"),
-  imageCaption: z.string().max(250).default(""),
-  sponsorButtonText: z.string().max(100).default("Sponsor Outreach"),
-});
+export { imagesJsonSchema } from "./schemas";
 
 export async function updateHeroContent(
   _prev: ActionResult<void>,
   formData: FormData,
 ): Promise<ActionResult<void>> {
-  await requireAdmin();
+  const session = await requireAdmin();
+
+  const rateLimit = await checkRateLimit(`content_update:${session.userId}`, 30, 60 * 1000);
+  if (!rateLimit.allowed) {
+    return { ok: false, message: "Too many updates. Please wait a moment before saving again." };
+  }
 
   const parsed = heroSchema.safeParse({
     badge: formData.get("badge"),
@@ -68,19 +43,12 @@ export async function updateHeroContent(
     return { ok: false, message: errorMsg || "Invalid input." };
   }
 
-  let images: string[] = [];
-  try {
-    images = JSON.parse(parsed.data.imagesJson);
-  } catch {
-    images = [];
-  }
-
   const content: HeroContent = {
     badge: parsed.data.badge,
     title: parsed.data.title,
     titleHighlight: parsed.data.titleHighlight,
     description: parsed.data.description,
-    images,
+    images: parsed.data.imagesJson,
     imageCaption: parsed.data.imageCaption,
     imageSubcaption: parsed.data.imageSubcaption,
   };
@@ -89,6 +57,12 @@ export async function updateHeroContent(
     where: { key: "hero" },
     update: { value: JSON.stringify(content) },
     create: { key: "hero", value: JSON.stringify(content) },
+  });
+
+  logAuditEvent({
+    action: "CONTENT_UPDATE",
+    actor: { userId: session.userId, email: session.email },
+    details: { section: "hero", imageCount: parsed.data.imagesJson.length },
   });
 
   revalidatePath("/");
@@ -101,7 +75,12 @@ export async function updateAboutContent(
   _prev: ActionResult<void>,
   formData: FormData,
 ): Promise<ActionResult<void>> {
-  await requireAdmin();
+  const session = await requireAdmin();
+
+  const rateLimit = await checkRateLimit(`content_update:${session.userId}`, 30, 60 * 1000);
+  if (!rateLimit.allowed) {
+    return { ok: false, message: "Too many updates. Please wait a moment before saving again." };
+  }
 
   const parsed = aboutSchema.safeParse({
     eyebrow: formData.get("eyebrow"),
@@ -128,19 +107,12 @@ export async function updateAboutContent(
     return { ok: false, message: errorMsg || "Invalid input." };
   }
 
-  let images: string[] = [];
-  try {
-    images = JSON.parse(parsed.data.imagesJson);
-  } catch {
-    images = [];
-  }
-
   const content: AboutContent = {
     eyebrow: parsed.data.eyebrow,
     title: parsed.data.title,
     paragraph1: parsed.data.paragraph1,
     paragraph2: parsed.data.paragraph2,
-    images,
+    images: parsed.data.imagesJson,
     imageBadge: parsed.data.imageBadge,
     imageCaption: parsed.data.imageCaption,
     quote: parsed.data.quote,
@@ -158,6 +130,12 @@ export async function updateAboutContent(
     create: { key: "about", value: JSON.stringify(content) },
   });
 
+  logAuditEvent({
+    action: "CONTENT_UPDATE",
+    actor: { userId: session.userId, email: session.email },
+    details: { section: "about", imageCount: parsed.data.imagesJson.length },
+  });
+
   revalidatePath("/");
   revalidatePath("/admin/content");
 
@@ -168,7 +146,12 @@ export async function updateOutreachContent(
   _prev: ActionResult<void>,
   formData: FormData,
 ): Promise<ActionResult<void>> {
-  await requireAdmin();
+  const session = await requireAdmin();
+
+  const rateLimit = await checkRateLimit(`content_update:${session.userId}`, 30, 60 * 1000);
+  if (!rateLimit.allowed) {
+    return { ok: false, message: "Too many updates. Please wait a moment before saving again." };
+  }
 
   const parsed = outreachSchema.safeParse({
     eyebrow: formData.get("eyebrow"),
@@ -187,18 +170,11 @@ export async function updateOutreachContent(
     return { ok: false, message: errorMsg || "Invalid input." };
   }
 
-  let images: string[] = [];
-  try {
-    images = JSON.parse(parsed.data.imagesJson);
-  } catch {
-    images = [];
-  }
-
   const content: OutreachContent = {
     eyebrow: parsed.data.eyebrow,
     title: parsed.data.title,
     description: parsed.data.description,
-    images,
+    images: parsed.data.imagesJson,
     imageTag: parsed.data.imageTag,
     imageCaption: parsed.data.imageCaption,
     sponsorButtonText: parsed.data.sponsorButtonText,
@@ -208,6 +184,12 @@ export async function updateOutreachContent(
     where: { key: "outreach" },
     update: { value: JSON.stringify(content) },
     create: { key: "outreach", value: JSON.stringify(content) },
+  });
+
+  logAuditEvent({
+    action: "CONTENT_UPDATE",
+    actor: { userId: session.userId, email: session.email },
+    details: { section: "outreach", imageCount: parsed.data.imagesJson.length },
   });
 
   revalidatePath("/");

@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 
-/** Pure JWT helpers: safe to use from proxy.ts and server code alike. */
-export const SESSION_COOKIE = "gia_session";
+export const SESSION_COOKIE =
+  process.env.NODE_ENV === "production" ? "__Host-lhf_session" : "lhf_session";
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 export type SessionPayload = { userId: string; email: string; name: string; sessionVersion: number };

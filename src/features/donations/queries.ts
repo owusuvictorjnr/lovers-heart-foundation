@@ -40,8 +40,14 @@ export async function listDonations(filters: DonationFilters) {
   return { items, total, pages: Math.max(1, Math.ceil(total / DONATIONS_PAGE_SIZE)), successTotal: sum._sum.amount ?? 0 };
 }
 
-export function listDonationsForExport(filters: DonationFilters) {
-  return db.donation.findMany({ where: buildWhere(filters), orderBy: { createdAt: "desc" } });
+export const MAX_EXPORT_ROWS = 5_000;
+
+export function listDonationsForExport(filters: DonationFilters, limit = MAX_EXPORT_ROWS + 1) {
+  return db.donation.findMany({
+    where: buildWhere(filters),
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
 }
 
 export async function getDonationStats() {

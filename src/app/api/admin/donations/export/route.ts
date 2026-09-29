@@ -1,7 +1,8 @@
 import { getSession } from "@/features/auth/lib/session";
-import { listDonationsForExport } from "@/features/donations/queries";
+import { listDonationsForExport, MAX_EXPORT_ROWS } from "@/features/donations/queries";
 import { donationFilterSchema } from "@/features/donations/schemas";
-import { formatCedis, formatDate } from "@/lib/utils";
+import { logAuditEvent } from "@/lib/audit";
+import { formatCedis, formatDate, escapeHtml } from "@/lib/utils";
 
 function csvCell(value: unknown) {
   const s = value == null ? "" : String(value);
@@ -10,12 +11,76 @@ function csvCell(value: unknown) {
 }
 
 export async function GET(request: Request) {
-  if (!(await getSession())) return new Response("Unauthorized", { status: 401 });
+  const session = await getSession();
+  if (!session) return new Response("Unauthorized", { status: 401 });
 
   const url = new URL(request.url);
-  const format = url.searchParams.get("format") || "csv";
+  const format = url.searchParams.get("format") ?? "csv";
+
+  if (format !== "csv" && format !== "pdf") {
+    return new Response("Invalid export format. Only 'csv' and 'pdf' are supported.", {
+      status: 400,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+
   const filters = donationFilterSchema.parse(Object.fromEntries(url.searchParams));
-  const rows = await listDonationsForExport(filters);
+
+  // Date range sanity validation
+  if (filters.from && filters.to && filters.from > filters.to) {
+    return new Response("Invalid date range: 'From' date must be before or equal to 'To' date.", {
+      status: 400,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+
+  // Fetch up to MAX_EXPORT_ROWS + 1 to detect overflow without uncapped memory consumption
+  const rows = await listDonationsForExport(filters, MAX_EXPORT_ROWS + 1);
+
+  if (rows.length > MAX_EXPORT_ROWS) {
+    logAuditEvent({
+      action: "EXPORT_OVERSIZED_ATTEMPT",
+      actor: { userId: session.userId, email: session.email },
+      details: {
+        format,
+        limit: MAX_EXPORT_ROWS,
+        filters: {
+          status: filters.status,
+          q: filters.q,
+          from: filters.from?.toISOString().slice(0, 10),
+          to: filters.to?.toISOString().slice(0, 10),
+        },
+      },
+      userAgent: request.headers.get("user-agent"),
+      ip: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
+    });
+
+    return new Response(
+      `Export limit exceeded: Found more than ${MAX_EXPORT_ROWS.toLocaleString()} records matching these criteria. Please narrow your date range or search filters before exporting.`,
+      {
+        status: 413,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      },
+    );
+  }
+
+  // Log successful audit event
+  logAuditEvent({
+    action: "EXPORT_DONATIONS",
+    actor: { userId: session.userId, email: session.email },
+    details: {
+      format,
+      rowCount: rows.length,
+      filters: {
+        status: filters.status,
+        q: filters.q,
+        from: filters.from?.toISOString().slice(0, 10),
+        to: filters.to?.toISOString().slice(0, 10),
+      },
+    },
+    userAgent: request.headers.get("user-agent"),
+    ip: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
+  });
 
   // If CSV export requested:
   if (format === "csv") {
@@ -51,6 +116,8 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="donations-${new Date().toISOString().slice(0, 10)}.csv"`,
+        "X-Content-Type-Options": "nosniff",
+        "Cache-Control": "no-store",
       },
     });
   }
@@ -72,10 +139,10 @@ export async function GET(request: Request) {
   });
 
   const filterSummary: string[] = [];
-  if (filters.status) filterSummary.push(`Status: ${filters.status}`);
-  if (filters.q) filterSummary.push(`Search: "${filters.q}"`);
-  if (filters.from) filterSummary.push(`From: ${filters.from.toISOString().slice(0, 10)}`);
-  if (filters.to) filterSummary.push(`To: ${filters.to.toISOString().slice(0, 10)}`);
+  if (filters.status) filterSummary.push(`Status: ${escapeHtml(filters.status)}`);
+  if (filters.q) filterSummary.push(`Search: "${escapeHtml(filters.q)}"`);
+  if (filters.from) filterSummary.push(`From: ${escapeHtml(filters.from.toISOString().slice(0, 10))}`);
+  if (filters.to) filterSummary.push(`To: ${escapeHtml(filters.to.toISOString().slice(0, 10))}`);
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -84,8 +151,6 @@ export async function GET(request: Request) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Donations Statement - God Is Alive Foundation</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&family=JetBrains+Mono:wght@400;500&display=swap');
-
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -93,7 +158,7 @@ export async function GET(request: Request) {
     }
 
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: #f7f4ec;
       color: #1a2e22;
       line-height: 1.5;
@@ -153,7 +218,7 @@ export async function GET(request: Request) {
     }
 
     .brand h1 {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: "Georgia", "Times New Roman", Times, serif;
       font-size: 24px;
       color: #143826;
       letter-spacing: -0.01em;
@@ -247,7 +312,7 @@ export async function GET(request: Request) {
       vertical-align: middle;
     }
     .mono {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 11px;
       color: #637568;
     }
@@ -308,7 +373,7 @@ export async function GET(request: Request) {
       <button onclick="window.print()" class="btn btn-gold">
         🖨️ Print / Save as PDF
       </button>
-      <a href="/api/admin/donations/export?${url.searchParams.toString().replace("format=pdf", "format=csv")}" class="btn btn-subtle">
+      <a href="/api/admin/donations/export?${escapeHtml(url.searchParams.toString().replace("format=pdf", "format=csv"))}" class="btn btn-subtle">
         📥 Download CSV
       </a>
       <button onclick="window.close()" class="btn btn-subtle">
@@ -325,7 +390,7 @@ export async function GET(request: Request) {
       </div>
       <div class="meta">
         <div class="title">Donation Report</div>
-        <div>Generated: ${dateGenerated}</div>
+        <div>Generated: ${escapeHtml(dateGenerated)}</div>
         <div>Total Entries: ${rows.length}</div>
       </div>
     </header>
@@ -386,13 +451,31 @@ export async function GET(request: Request) {
                           ? "badge-failed"
                           : "badge-abandoned";
                   const dateStr = formatDate(d.paidAt ?? d.createdAt, true);
+                  const STATUS_LABELS: Record<string, string> = {
+                    SUCCESS: "Success",
+                    PENDING: "Pending",
+                    FAILED: "Failed",
+                    ABANDONED: "Abandoned",
+                  };
+                  const CHANNEL_LABELS: Record<string, string> = {
+                    card: "Card",
+                    bank_transfer: "Bank Transfer",
+                    mobile_money: "Mobile Money",
+                    ussd: "USSD",
+                    qr: "QR",
+                    eft: "EFT",
+                  };
+                  const statusLabel = STATUS_LABELS[d.status] || escapeHtml(d.status);
+                  const rawChannel = (d.channel || "").toLowerCase();
+                  const channelLabel = rawChannel ? (CHANNEL_LABELS[rawChannel] || escapeHtml(rawChannel.replace(/_/g, " "))) : "—";
+
                   return `<tr>
-                    <td style="white-space: nowrap; color: #637568;">${dateStr}</td>
+                    <td style="white-space: nowrap; color: #637568;">${escapeHtml(dateStr)}</td>
                     <td><strong>${escapeHtml(d.donorName)}</strong>${d.anonymous ? ' <span style="font-size:10px; color:#8c7b64;">(anon)</span>' : ""}</td>
                     <td style="color: #637568;">${escapeHtml(d.email || d.phone || "—")}</td>
                     <td class="text-right" style="font-weight: 700; white-space: nowrap;">${formatCedis(d.amount)}</td>
-                    <td><span class="badge ${badgeClass}">${d.status}</span></td>
-                    <td style="text-transform: capitalize; color: #637568;">${(d.channel || "—").replace("_", " ")}</td>
+                    <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
+                    <td style="color: #637568;">${channelLabel}</td>
                     <td class="mono">${escapeHtml(d.reference)}</td>
                   </tr>`;
                 })
@@ -406,32 +489,17 @@ export async function GET(request: Request) {
       <div>Page 1 of 1</div>
     </footer>
   </div>
-
-  <script>
-    // Prompt print dialog when window loads in browser
-    window.addEventListener('load', () => {
-      // Small delay to allow fonts and CSS to render
-      setTimeout(() => {
-        window.print();
-      }, 350);
-    });
-  </script>
 </body>
 </html>`;
 
   return new Response(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
+      "Content-Security-Policy": "default-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "no-store",
     },
   });
 }
 
-function escapeHtml(text: string | null | undefined): string {
-  if (!text) return "";
-  return String(text)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+export { escapeHtml };
