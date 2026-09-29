@@ -3,9 +3,20 @@ import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+const globalForDb = globalThis as unknown as {
+  prisma?: PrismaClient;
+  pool?: Pool;
+};
 
-function createClient() {
+function getClient(): PrismaClient {
+  if (globalForDb.prisma && "siteContent" in globalForDb.prisma) {
+    return globalForDb.prisma;
+  }
+
+  if (globalForDb.pool) {
+    globalForDb.pool.end().catch(() => {});
+  }
+
   const connectionString = process.env.DATABASE_URL;
   const isSupabase =
     connectionString?.includes("supabase.com") ||
@@ -16,25 +27,25 @@ function createClient() {
   if (isSupabase && cleanUrl?.includes("pooler.supabase.com:5432")) {
     cleanUrl = cleanUrl.replace("pooler.supabase.com:5432", "pooler.supabase.com:6543");
   }
+
   const pool = new Pool({
     connectionString: cleanUrl,
     ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
-    max: 5,
+    max: 10,
     idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 10000,
   });
-  const adapter = new PrismaPg(pool);
-  return new PrismaClient({ adapter });
-}
 
-function getClient(): PrismaClient {
-  if (globalForPrisma.prisma && "siteContent" in globalForPrisma.prisma) {
-    return globalForPrisma.prisma;
+  const adapter = new PrismaPg(pool);
+  const client = new PrismaClient({ adapter });
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForDb.prisma = client;
+    globalForDb.pool = pool;
   }
-  const client = createClient();
-  if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = client;
+
   return client;
 }
 
-// Reuse one client across hot reloads in development, auto-refreshing if schema changed
+// Reuse one client and connection pool across hot reloads in development
 export const db = getClient();
