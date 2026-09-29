@@ -134,11 +134,11 @@ describe("Auth & Session Security", () => {
     await clearLoginRateLimit(concurrentEmail);
   });
 
-  it("redirects authenticated users away from /admin/login in proxy", async () => {
+  it("passes /admin/login to LoginPage and protects /admin routes in proxy", async () => {
     const { proxy } = await import("../src/proxy");
     const token = await signSession(sampleUser);
 
-    // Case 1: Authenticated user visiting /admin/login -> redirect to /admin
+    // Case 1: Visiting /admin/login passes through so LoginPage can check database authoritatively
     const reqAuthLogin = {
       nextUrl: new URL("http://localhost:3000/admin/login"),
       url: "http://localhost:3000/admin/login",
@@ -148,8 +148,7 @@ describe("Auth & Session Security", () => {
     } as any;
 
     const resAuthLogin = await proxy(reqAuthLogin);
-    assert.equal(resAuthLogin.status, 307);
-    assert.equal(resAuthLogin.headers.get("location"), "http://localhost:3000/admin");
+    assert.equal(resAuthLogin.status, 200);
 
     // Case 2: Unauthenticated user visiting /admin -> redirect to /admin/login
     const reqUnauthAdmin = {
@@ -163,6 +162,18 @@ describe("Auth & Session Security", () => {
     const resUnauthAdmin = await proxy(reqUnauthAdmin);
     assert.equal(resUnauthAdmin.status, 307);
     assert.equal(resUnauthAdmin.headers.get("location"), "http://localhost:3000/admin/login");
+
+    // Case 3: Authenticated user visiting /admin -> passes through to dashboard
+    const reqAuthAdmin = {
+      nextUrl: new URL("http://localhost:3000/admin"),
+      url: "http://localhost:3000/admin",
+      cookies: {
+        get: (name: string) => (name === SESSION_COOKIE ? { value: token } : undefined),
+      },
+    } as any;
+
+    const resAuthAdmin = await proxy(reqAuthAdmin);
+    assert.equal(resAuthAdmin.status, 200);
   });
 });
 

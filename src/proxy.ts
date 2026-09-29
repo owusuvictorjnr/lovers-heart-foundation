@@ -16,16 +16,14 @@ export async function proxy(request: NextRequest) {
     request.cookies.get("__Host-lhf_session")?.value ||
     request.cookies.get("lhf_session")?.value ||
     request.cookies.get("gia_session")?.value;
-  const session = await verifySession(token);
   const isLogin = pathname === "/admin/login";
-
-  // If an already authenticated user visits the login page, redirect them straight to the dashboard
-  if (session && isLogin) {
-    return NextResponse.redirect(new URL("/admin", request.url));
+  if (isLogin) {
+    return NextResponse.next();
   }
 
+  const session = await verifySession(token);
   // If visiting an admin dashboard route without a valid JWT, redirect to login and clear cookie
-  if (!session && !isLogin) {
+  if (!session) {
     const res = NextResponse.redirect(new URL("/admin/login", request.url));
     if (token) {
       res.cookies.delete(SESSION_COOKIE);
