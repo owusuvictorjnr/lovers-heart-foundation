@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart, Menu, X } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { Container } from "@/components/ui/section";
@@ -133,18 +133,34 @@ export function SiteHeader() {
             </ButtonLink>
           </div>
 
-          {/* Mobile hamburger button */}
+          {/* Mobile menu toggle button */}
           <button
-            className="grid size-9 sm:size-10 place-items-center rounded-xl border border-line bg-cream-pure text-ink lg:hidden cursor-pointer active:scale-95 transition-transform"
-            aria-label={open ? "Close menu" : "Open menu"}
+            type="button"
+            className={cn(
+              "relative grid size-10 place-items-center rounded-2xl border transition-all duration-300 cursor-pointer lg:hidden active:scale-90",
+              open
+                ? "border-forest bg-forest text-gold shadow-xs"
+                : "border-line/90 bg-cream-pure text-forest shadow-2xs hover:border-gold hover:bg-gold-soft/30",
+            )}
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
           >
-            <span className="grid gap-1.2">
-              <span className={cn("block h-0.5 w-4.5 bg-ink transition-transform", open && "translate-y-1.7 rotate-45")} />
-              <span className={cn("block h-0.5 w-4.5 bg-ink transition-opacity", open && "opacity-0")} />
-              <span className={cn("block h-0.5 w-4.5 bg-ink transition-transform", open && "-translate-y-1.7 -rotate-45")} />
-            </span>
+            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+            <div className="relative size-5">
+              <Menu
+                className={cn(
+                  "absolute inset-0 size-5 stroke-[2.2] transition-all duration-300 ease-out",
+                  open ? "rotate-90 opacity-0 scale-50" : "rotate-0 opacity-100 scale-100",
+                )}
+              />
+              <X
+                className={cn(
+                  "absolute inset-0 size-5 stroke-[2.4] transition-all duration-300 ease-out",
+                  open ? "rotate-0 opacity-100 scale-100" : "-rotate-90 opacity-0 scale-50",
+                )}
+              />
+            </div>
           </button>
         </Container>
 
@@ -159,7 +175,7 @@ export function SiteHeader() {
         <div
           data-lenis-prevent
           className={cn(
-            "lg:hidden absolute inset-x-0 top-full border-b border-line bg-cream-pure/98 px-5 py-5 shadow-2xl backdrop-blur-md transition-all duration-300 z-50",
+            "lg:hidden absolute inset-x-0 top-full border-b border-line bg-cream-pure/98 px-5 py-5 shadow-2xl backdrop-blur-md transition-all duration-300 z-50 rounded-b-3xl",
             open ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-2 pointer-events-none",
           )}
         >
