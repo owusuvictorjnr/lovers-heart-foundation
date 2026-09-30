@@ -4,6 +4,7 @@
  */
 export const siteConfig = {
   name: "Lovers Heart Foundation",
+  motto: "Nyame Tumi So",
   tagline: "Bringing hope to children's homes across Ghana.",
   description:
     "Lovers Heart Foundation is a Ghanaian NGO that donates food, clothing, school supplies and love to children's homes across Ghana every year.",
