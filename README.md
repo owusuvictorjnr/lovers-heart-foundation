@@ -1,6 +1,6 @@
-# God Is Alive: Website & Admin
+# Lovers Heart Foundation: Website & Admin
 
-Website for  **Lovers Heart FOundation**, a Ghanaian NGO that donates to children's homes every year.
+Website for **Lovers Heart Foundation**, a Ghanaian NGO that donates to children's homes every year.
 Visitors can donate online (Mobile Money / card via Paystack), browse the gallery, sign up to volunteer
 and send messages. Staff manage everything from `/admin`.
 

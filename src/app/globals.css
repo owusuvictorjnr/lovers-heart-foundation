@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest: #0c3b2e;
+  --color-forest-dark: #07261d;
+  --color-forest-light: #165b45;
+  --color-forest-soft: #edf5f0;
+  
+  --color-gold: #e59b10;
+  --color-gold-warm: #f3b12c;
+  --color-gold-deep: #b37300;
+  --color-gold-soft: #fdf3df;
+  
+  --color-clay: #b84328;
+  --color-terracotta: #c45237;
+  --color-terracotta-soft: #fcf0ec;
+  
+  --color-ink: #171512;
+  --color-ink-light: #322d27;
+  --color-muted: #635b52;
+  --color-muted-light: #8c8277;
+  
+  --color-cream: #faf7f2;
+  --color-cream-pure: #fffefb;
+  --color-sand: #f3ece0;
+  --color-sand-dark: #e8ded0;
+  --color-line: #e3d8c7;
+  --color-line-dark: #c9bcab;
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, Cambria, serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+    color-scheme: light;
+    scrollbar-color: var(--color-line-dark) var(--color-sand);
+    scrollbar-width: thin;
+  }
+
+  /* Lenis smooth scrolling compatibility overrides */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  html.lenis,
+  html.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  body {
+    @apply bg-cream font-sans text-[16.5px] leading-relaxed text-ink antialiased selection:bg-gold-soft selection:text-ink;
+    overscroll-behavior-y: none;
+  }
+
+  /* Target section anchors with clear header clearance */
+  [id] {
+    scroll-margin-top: 100px;
+  }
+
+  /* Modern custom scrollbar styling for web */
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-sand);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-dark);
+    border-radius: 9999px;
+    border: 2px solid var(--color-sand);
+    transition: background-color 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-gold);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif leading-tight tracking-tight text-ink;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto !important;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility eyebrow {
+  @apply mb-3.5 inline-flex items-center gap-2 text-xs font-bold tracking-[.18em] text-forest-light uppercase;
+}
+
+@utility stamp-badge {
+  @apply inline-flex items-center gap-2 rounded-full border border-forest/15 bg-forest-soft px-3.5 py-1.5 text-xs font-semibold tracking-wide text-forest shadow-xs;
+}
+
+@utility kente {
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-gold) 0 35px,
+    var(--color-forest) 35px 55px,
+    var(--color-clay) 55px 68px,
+    var(--color-ink) 68px 74px,
+    var(--color-gold) 74px 105px,
+    var(--color-forest-light) 105px 120px
+  );
+}
+
+@utility paper-card {
+  @apply relative rounded-2xl border border-line bg-cream-pure p-6 shadow-[0_4px_20px_rgba(23,21,18,0.04)] transition duration-300 hover:border-gold/60 hover:shadow-[0_12px_36px_rgba(23,21,18,0.08)];
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility smooth-touch {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
