@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 export function Container({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("mx-auto w-[min(1180px,100%-40px)] px-2 sm:px-4", className)}
+      className={cn("mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8", className)}
       {...props}
     />
   );
