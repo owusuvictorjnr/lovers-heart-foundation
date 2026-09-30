@@ -17,20 +17,24 @@ function getClient(): PrismaClient {
     globalForDb.pool.end().catch(() => {});
   }
 
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL ?? "";
   const isSupabase =
-    connectionString?.includes("supabase.com") ||
-    connectionString?.includes("pooler.supabase.com");
-  let cleanUrl = isSupabase
-    ? connectionString?.replace(/[?&]sslmode=[^&]+/, "")
-    : connectionString;
-  if (isSupabase && cleanUrl?.includes("pooler.supabase.com:5432")) {
+    connectionString.includes("supabase.com") ||
+    connectionString.includes("pooler.supabase.com");
+  const isNeon = connectionString.includes("neon.tech");
+  const hasSslMode = connectionString.includes("sslmode=");
+
+  let cleanUrl = connectionString;
+  if (isSupabase || isNeon || hasSslMode) {
+    cleanUrl = cleanUrl.replace(/[?&]sslmode=[^&]+/, "");
+  }
+  if (isSupabase && cleanUrl.includes("pooler.supabase.com:5432")) {
     cleanUrl = cleanUrl.replace("pooler.supabase.com:5432", "pooler.supabase.com:6543");
   }
 
   const pool = new Pool({
     connectionString: cleanUrl,
-    ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
+    ssl: isSupabase || isNeon || hasSslMode ? { rejectUnauthorized: false } : undefined,
     max: 10,
     idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 10000,
@@ -39,10 +43,8 @@ function getClient(): PrismaClient {
   const adapter = new PrismaPg(pool);
   const client = new PrismaClient({ adapter });
 
-  if (process.env.NODE_ENV !== "production") {
-    globalForDb.prisma = client;
-    globalForDb.pool = pool;
-  }
+  globalForDb.prisma = client;
+  globalForDb.pool = pool;
 
   return client;
 }
