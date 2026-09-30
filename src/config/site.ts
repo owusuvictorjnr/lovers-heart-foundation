@@ -25,9 +25,9 @@ export const siteConfig = {
   directGiving: {
     reference: "LHF Donation",
     momo: [
-      { network: "MTN MoMo", number: "024 000 0000", color: "#ffcc00", textColor: "#1d1a16", short: "MTN" },
-      { network: "Telecel Cash", number: "020 000 0000", color: "#e30613", textColor: "#fff", short: "T" },
-      { network: "AT Money", number: "027 000 0000", color: "#0066b3", textColor: "#fff", short: "AT" },
+      { network: "MTN MoMo", number: "024 000 0000", color: "#ffcc00", textColor: "#1d1a16", short: "MTN", logo: "/images/mtn.png" },
+      { network: "Telecel Cash", number: "020 000 0000", color: "#e30613", textColor: "#fff", short: "Telecel", logo: "/images/telecel.png" },
+      { network: "AirtelTigo / AT", number: "027 000 0000", color: "#e31b23", textColor: "#fff", short: "AirtelTigo", logo: "/images/airteltigo.png" },
     ],
     bank: {
       bank: "[Bank Name], [Branch]",

@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
-import { Check, Copy, Landmark, ShieldCheck, Smartphone } from "lucide-react";
+import { Check, Copy, Landmark, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
@@ -72,6 +73,7 @@ export function DirectGiving() {
       number: m.number,
       color: m.color,
       textColor: m.textColor,
+      logo: "logo" in m ? (m.logo as string) : undefined,
       subtitle: "Direct Mobile Money",
       accountName: bank.accountName,
     })),
@@ -84,6 +86,7 @@ export function DirectGiving() {
       bankName: bank.bank,
       color: "#0c3b2e",
       textColor: "#f3b12c",
+      logo: undefined,
       subtitle: "Direct Wire / Branch",
       accountName: bank.accountName,
     },
@@ -115,10 +118,24 @@ export function DirectGiving() {
                   : "text-white/70 hover:text-white hover:bg-white/5",
               )}
             >
-              <span
-                className="size-2 rounded-full mb-1"
-                style={{ backgroundColor: item.color }}
-              />
+              {item.logo ? (
+                <div className="relative h-4 w-7 mb-1">
+                  <Image
+                    src={item.logo}
+                    alt={item.short}
+                    fill
+                    sizes="28px"
+                    className="object-contain"
+                  />
+                </div>
+              ) : item.type === "bank" ? (
+                <Landmark className="size-4 mb-1 text-gold" />
+              ) : (
+                <span
+                  className="size-2 rounded-full mb-1"
+                  style={{ backgroundColor: item.color }}
+                />
+              )}
               <span className="truncate max-w-full text-[11px] leading-tight">
                 {item.short}
               </span>
@@ -145,13 +162,27 @@ export function DirectGiving() {
               <div className="flex items-center justify-between gap-3 pt-1 mb-4">
                 <div className="flex items-center gap-3">
                   <div
-                    className="grid size-10 place-items-center rounded-xl font-bold text-xs shadow-xs shrink-0"
-                    style={{ background: activeItem.color, color: activeItem.textColor }}
+                    className="relative grid size-11 place-items-center rounded-xl overflow-hidden font-bold text-xs shadow-xs shrink-0 bg-white border border-line/60 p-1"
                   >
-                    {activeItem.type === "bank" ? (
-                      <Landmark className="size-5" />
+                    {activeItem.logo ? (
+                      <Image
+                        src={activeItem.logo}
+                        alt={activeItem.network}
+                        fill
+                        sizes="44px"
+                        className="object-contain p-1"
+                      />
+                    ) : activeItem.type === "bank" ? (
+                      <div className="grid size-full place-items-center bg-forest text-gold rounded-lg">
+                        <Landmark className="size-5.5" />
+                      </div>
                     ) : (
-                      activeItem.short
+                      <div
+                        className="grid size-full place-items-center rounded-lg"
+                        style={{ background: activeItem.color, color: activeItem.textColor }}
+                      >
+                        {activeItem.short}
+                      </div>
                     )}
                   </div>
                   <div>
@@ -233,13 +264,27 @@ export function DirectGiving() {
                 {/* Header */}
                 <div className="mb-4 flex items-center gap-3 pt-1">
                   <div
-                    className="grid size-10 place-items-center rounded-xl font-bold text-xs shadow-xs shrink-0"
-                    style={{ background: item.color, color: item.textColor }}
+                    className="relative grid size-11 place-items-center rounded-xl overflow-hidden font-bold text-xs shadow-xs shrink-0 bg-white border border-line/60 p-1"
                   >
-                    {item.type === "bank" ? (
-                      <Landmark className="size-5" />
+                    {item.logo ? (
+                      <Image
+                        src={item.logo}
+                        alt={item.network}
+                        fill
+                        sizes="44px"
+                        className="object-contain p-1"
+                      />
+                    ) : item.type === "bank" ? (
+                      <div className="grid size-full place-items-center bg-forest text-gold rounded-lg">
+                        <Landmark className="size-5.5" />
+                      </div>
                     ) : (
-                      item.short
+                      <div
+                        className="grid size-full place-items-center rounded-lg"
+                        style={{ background: item.color, color: item.textColor }}
+                      >
+                        {item.short}
+                      </div>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">

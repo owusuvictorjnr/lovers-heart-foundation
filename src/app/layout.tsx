@@ -15,6 +15,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: { default: `${siteConfig.name} | Caring for Children's Homes in Ghana`, template: `%s | ${siteConfig.name}` },
   description: siteConfig.description,
+  icons: {
+    icon: [
+      { url: "/images/logo.jpg" },
+    ],
+    apple: [
+      { url: "/images/logo.jpg" },
+    ],
+  },
   openGraph: { title: siteConfig.name, description: siteConfig.description, type: "website", locale: "en_GH" },
 };
 
