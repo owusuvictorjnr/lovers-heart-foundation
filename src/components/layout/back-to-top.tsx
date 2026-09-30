@@ -21,7 +21,7 @@ export function BackToTop() {
   return (
     <div
       className={cn(
-        "fixed bottom-6 right-6 z-40 transition-all duration-400 ease-out",
+        "fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 transition-all duration-400 ease-out",
         isVisible
           ? "translate-y-0 opacity-100 pointer-events-auto scale-100"
           : "translate-y-4 opacity-0 pointer-events-none scale-90",
@@ -31,7 +31,7 @@ export function BackToTop() {
         type="button"
         onClick={handleScrollToTop}
         aria-label="Scroll back to top of page"
-        className="group relative flex size-12 items-center justify-center rounded-full border border-line/90 bg-cream-pure/90 text-ink shadow-[0_8px_24px_rgba(23,21,18,0.12)] backdrop-blur-md transition-all duration-300 hover:scale-110 hover:border-gold hover:bg-white hover:text-forest hover:shadow-[0_12px_28px_rgba(229,155,16,0.22)] active:scale-95 focus-visible:outline-2 focus-visible:outline-gold"
+        className="group relative flex size-10 sm:size-12 items-center justify-center rounded-full border border-line/90 bg-cream-pure/95 text-ink shadow-[0_6px_20px_rgba(23,21,18,0.14)] backdrop-blur-md transition-all duration-300 hover:scale-110 hover:border-gold hover:bg-white hover:text-forest hover:shadow-[0_12px_28px_rgba(229,155,16,0.22)] active:scale-95 focus-visible:outline-2 focus-visible:outline-gold"
       >
         {/* Circular Progress Ring */}
         <svg
