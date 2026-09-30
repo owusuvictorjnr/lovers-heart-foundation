@@ -65,35 +65,41 @@ export function SiteHeader() {
   return (
     <>
       {/* Top mission & MoMo helper ribbon */}
-      <div className="bg-forest px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium text-white">
-        <Container className="flex items-center justify-between gap-2">
+      <div className="bg-forest px-3 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium text-white border-b border-white/10">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 truncate">
             <span className="inline-block size-2 rounded-full bg-gold animate-pulse shrink-0" />
             <span className="truncate">
               <strong>Lovers Heart Foundation:</strong> Dedicated to children&apos;s homes across Ghana.
             </span>
           </div>
-          <div className="hidden sm:flex items-center gap-4 text-white/80 text-[11px] shrink-0">
-            <span>MTN MoMo &amp; Telecel Cash</span>
+          <div className="hidden sm:flex items-center gap-3.5 text-white/85 text-[11px] shrink-0 font-medium">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-gold" />
+              MTN MoMo • Telecel • AT
+            </span>
             <span className="text-white/30">•</span>
-            <span>100% Direct Giving</span>
+            <span className="text-gold font-semibold">100% Direct Giving</span>
           </div>
-        </Container>
+        </div>
       </div>
 
       <header
         className={cn(
           "sticky top-0 z-50 transition-all duration-300",
           isScrolled
-            ? "border-b border-line bg-cream/95 backdrop-blur-md shadow-xs py-2.5 sm:py-3.5"
-            : "border-b border-transparent bg-cream/85 backdrop-blur-sm py-3 sm:py-4.5",
+            ? "border-b border-line bg-cream/95 backdrop-blur-md shadow-xs py-2.5 sm:py-3"
+            : "border-b border-line/40 bg-cream/90 backdrop-blur-md py-3 sm:py-4",
         )}
       >
-        <Container className="flex items-center justify-between">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
           <Logo />
 
-          {/* Desktop Navigation */}
-          <nav aria-label="Main" className="hidden lg:flex items-center gap-1.5">
+          {/* Desktop Navigation Pill Dock */}
+          <nav
+            aria-label="Main navigation"
+            className="hidden lg:flex items-center gap-0.5 xl:gap-1 rounded-full border border-forest/10 bg-forest/[0.04] p-1.5 backdrop-blur-md shadow-2xs"
+          >
             {links.map((l) => {
               const isActive = activeSection === l.id;
               return (
@@ -102,33 +108,27 @@ export function SiteHeader() {
                   href={l.href}
                   onClick={(e) => handleNavClick(e, l.href)}
                   className={cn(
-                    "relative rounded-full px-3.5 py-1.5 text-[14px] font-medium transition-all duration-200",
+                    "whitespace-nowrap rounded-full px-2.5 xl:px-3.5 py-1.5 text-[13px] xl:text-[14px] font-semibold transition-all duration-200 select-none",
                     isActive
-                      ? "text-forest font-bold bg-forest/8 shadow-2xs"
-                      : "text-ink-light hover:text-forest hover:bg-sand/60",
+                      ? "bg-forest text-gold shadow-xs"
+                      : "text-ink/75 hover:text-forest hover:bg-forest/8",
                   )}
                 >
                   {l.label}
-                  {isActive && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-gold"
-                    />
-                  )}
                 </a>
               );
             })}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
             <ButtonLink
               href="/#donate"
               size="sm"
               variant="primary"
               onClick={(e) => handleNavClick(e, "/#donate")}
-              className="gap-2 shadow-[0_4px_12px_rgba(229,155,16,0.3)] transition-transform hover:scale-105 active:scale-95"
+              className="gap-2 px-5 py-2.5 shadow-[0_4px_14px_rgba(229,155,16,0.35)] transition-all hover:scale-105 active:scale-95 whitespace-nowrap font-bold"
             >
-              <Heart className="size-4 fill-ink/10" />
+              <Heart className="size-4 fill-ink/15" />
               <span>Donate Now</span>
             </ButtonLink>
           </div>
@@ -162,7 +162,7 @@ export function SiteHeader() {
               />
             </div>
           </button>
-        </Container>
+        </div>
 
         {/* Mobile Navigation Drawer */}
         {open && (
